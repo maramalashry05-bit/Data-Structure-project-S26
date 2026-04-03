@@ -19,5 +19,9 @@ public:
     ORD_TYPE GetType() const;
 
     void Print() const;
+    friend ostream& operator<<(ostream& out, const Order& o)
+    {
+        out << "OrderID: " << o.ID;
+        return out;
+    }
 };
-

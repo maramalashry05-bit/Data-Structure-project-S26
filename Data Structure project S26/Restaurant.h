@@ -5,16 +5,18 @@
 #include "priQueue.h"
 #include "Order.h"
 #include "Scooter.h"
-
+#include "DerivedQueue.h"
+#include "DerivedpriQueue.h"
 class Restaurant
 {
 private:
-    LinkedQueue<Order*> pending;
-    LinkedQueue<Order*> ready;
-    LinkedStack<Order*> finished;
-
-    LinkedQueue<Scooter*> scooters;
-    LinkedQueue<Scooter*> maintenance;
+    DerivedPriQueue<Order*> VIPOrders;
+    DerivedQueue<Order*> NormalOrders;
+    DerivedQueue<Order*> ColdOrders;
+    DerivedQueue<Order*> ReadyOrders;
+    LinkedStack<Order*> FinishedOrders;
+    priQueue<Scooter*> AvailableScooters;
+    DerivedQueue<Scooter*> MaintenanceScooters;
 
 public:
     void AddOrder(Order* o);
@@ -27,4 +29,9 @@ public:
     void MoveScooterToMaintenance();
 
     void PrintFinished();
+    DerivedPriQueue<Order*>& getVIP();
+    DerivedQueue<Order*>& getNormal();
+    DerivedQueue<Order*>& getCold();
+    DerivedQueue<Order*>& getReady();
+    LinkedStack<Order*>& getFinished();
 };

@@ -134,6 +134,7 @@
     <ClCompile Include="Scooter.cpp" />
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="Temp_test.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
@@ -155,6 +156,7 @@
     <ClInclude Include="Scooter.h" />
     <ClInclude Include="StackADT.h" />
     <ClInclude Include="Table.h" />
+    <ClInclude Include="UI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

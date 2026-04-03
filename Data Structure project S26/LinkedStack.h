@@ -49,6 +49,7 @@ public:
         TopEntry = topPtr->getItem();
         return true;
     }
+    
 
     // Destructor
     ~LinkedStack() override {

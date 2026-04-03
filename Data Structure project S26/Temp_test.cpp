@@ -49,29 +49,29 @@ int main()
     cout << "\n--- Finished Orders ---\n";
     rest.PrintFinished();
 
-    
+
     cout << "=== SIMULATION START ===\n";
 
     for (int t = 0; t < 3; t++)
     {
         cout << "\nTime Step: " << t << endl;
 
-     // ===== Lists =====
-          LinkedQueue<Order*> pendingNormal;
-           priQueue<Order*> pendingVIP;
+        // ===== Lists =====
+        LinkedQueue<Order*> pendingNormal;
+        priQueue<Order*> pendingVIP;
 
-       priQueue<Order*> cooking;   
-       LinkedQueue<Order*> ready;
+        priQueue<Order*> cooking;
+        LinkedQueue<Order*> ready;
 
-       LinkedQueue<Chef*> availableChefs;
+        LinkedQueue<Chef*> availableChefs;
 
-       priQueue<Scooter*> availableScooters;
-      LinkedQueue<Scooter*> maintenanceScooters;
+        priQueue<Scooter*> availableScooters;
+        LinkedQueue<Scooter*> maintenanceScooters;
 
         priQueue<Order*> inService;   // حسب finish time
-       LinkedStack<Order*> finished;
+        LinkedStack<Order*> finished;
 
-       // ===== Data =====
+        // ===== Data =====
         pendingNormal.enqueue(new Order(1, TYPE_OD, 2, 100));
         pendingVIP.enqueue(new Order(2, TYPE_OV, 3, 200), 5); // priority
 
@@ -81,35 +81,35 @@ int main()
         availableScooters.enqueue(new Scooter(1), 10);
 
         // ================= 3.1 =================
-       Order* o;
-       Chef* c;
+        Order* o;
+        Chef* c;
 
-       if (!pendingVIP.isEmpty())
-       {
-           int pri;
+        if (!pendingVIP.isEmpty())
+        {
+            int pri;
             pendingVIP.dequeue(o, pri);
-       }
+        }
         else
-       {
-           pendingNormal.dequeue(o);
-       }
+        {
+            pendingNormal.dequeue(o);
+        }
 
-       availableChefs.dequeue(c);
+        availableChefs.dequeue(c);
 
-       cooking.enqueue(o, 1); // priority fake (finish time later)
+        cooking.enqueue(o, 1); // priority fake (finish time later)
 
-       cout << "Moved to cooking: ";
-       o->Print();
+        cout << "Moved to cooking: ";
+        o->Print();
 
         //================= 3.2 =================
-       int pri;
+        int pri;
         Order* o2;
 
         cooking.dequeue(o2, pri);
-       ready.enqueue(o2);
+        ready.enqueue(o2);
 
-       cout << "Moved to ready: ";
-       o2->Print();
+        cout << "Moved to ready: ";
+        o2->Print();
 
         // ================= 3.3 =================
         Order* o3;
@@ -123,7 +123,7 @@ int main()
         else if (o3->GetType() == TYPE_OV)
         {
             Scooter* s;
-           int sp;
+            int sp;
 
             availableScooters.dequeue(s, sp);
             finished.push(o3);
@@ -147,22 +147,22 @@ int main()
         {
             pendingNormal.dequeue(cur);
 
-           if (cur->GetID() == cancelID)
-           {
-               cout << "Cancelled: ";
+            if (cur->GetID() == cancelID)
+            {
+                cout << "Cancelled: ";
                 cur->Print();
-               delete cur;
-           }
-           else
-           {
-               temp.enqueue(cur);
-           }
+                delete cur;
+            }
+            else
+            {
+                temp.enqueue(cur);
+            }
         }
 
         while (!temp.isEmpty())
         {
             temp.dequeue(cur);
-          pendingNormal.enqueue(cur);
+            pendingNormal.enqueue(cur);
         }
 
         // ================= 3.7 =================
@@ -190,46 +190,44 @@ int main()
                 cout << "Scooter → maintenance\n";
             }
             else
-           {
+            {
                 availableScooters.enqueue(s, sp);
                 cout << "Scooter reused\n";
-           }
+            }
         }
 
-      // ================= 3.9 =================
-       Scooter* s2;
+        // ================= 3.9 =================
+        Scooter* s2;
         if (!maintenanceScooters.isEmpty())
-       {
-           maintenanceScooters.dequeue(s2);
-         availableScooters.enqueue(s2, 5);
+        {
+            maintenanceScooters.dequeue(s2);
+            availableScooters.enqueue(s2, 5);
 
-           cout << "Scooter back\n";
-       }
+            cout << "Scooter back\n";
+        }
 
         // ================= 3.10 =================
-       cout << "\n--- Finished Orders (Stack) ---\n";
+        cout << "\n--- Finished Orders (Stack) ---\n";
 
-       Order* f;
-       while (!finished.isEmpty())
-       {
-           finished.pop(f);
-           f->Print();
-       }
+        Order* f;
+        while (!finished.isEmpty())
+        {
+            finished.pop(f);
+            f->Print();
+        }
 
     }
-     
-
 
     cout << " \n===== DerivedQueue Test =====\n\n";
 
     DerivedQueue<Order*> q;
 
-    // insert
+    
     q.enqueue(new Order(1, TYPE_OD, 2, 100));
     q.enqueue(new Order(2, TYPE_OV, 3, 200));
     q.enqueue(new Order(3, TYPE_OD, 1, 50));
 
-    // remove
+  
     Order* removed = nullptr;
 
     if (q.removeById(2, removed))

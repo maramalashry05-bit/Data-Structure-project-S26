@@ -2,20 +2,10 @@
 #include <iostream>
 using namespace std;
 
-#include "DerivedQueue.h"
-#include "DerivedPriQueue.h"
-#include "LinkedStack.h"
-#include "Order.h"
+#include "Restaurant.h"
 
 class UI
 {
 public:
-
-    void PrintOutput(
-        DerivedPriQueue<Order*>& vip,
-        DerivedQueue<Order*>& normal,
-        DerivedQueue<Order*>& cold,
-        DerivedQueue<Order*>& ready,
-        LinkedStack<Order*>& finished
-    );
+    void PrintAll(Restaurant& r, int timestep);
 };

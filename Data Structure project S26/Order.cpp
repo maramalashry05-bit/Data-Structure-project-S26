@@ -28,3 +28,8 @@ void Order::Print() const
 
     cout << endl;
 }
+ostream& operator<<(ostream& out, const Order& o)
+{
+    out << "OrderID: " << o.GetID();
+    return out;
+}

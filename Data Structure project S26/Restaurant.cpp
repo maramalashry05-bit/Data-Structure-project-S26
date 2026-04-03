@@ -1,103 +1,72 @@
-#include <iostream>
 #include "Restaurant.h"
+#include <iostream>
 
 using namespace std;
 
 void Restaurant::AddOrder(Order* o)
 {
-    if (o->GetType() == TYPE_OV) // VIP
-    {
-        VIPOrders.enqueue(o);   // priority ?????
-    }
-    else if (o->GetType() == TYPE_OD) // Normal
-    {
-        NormalOrders.enqueue(o);
-    }
-    else // Cold
-    {
+    if (!o) return;
+    ORD_TYPE t = o->GetType();
+    if (t == TYPE_OV)
+        VIPOrders.enqueue(o);
+    else if (t == TYPE_OT)
         ColdOrders.enqueue(o);
-    }
+    else
+        NormalOrders.enqueue(o);
 }
 
 void Restaurant::CancelOrder(int id)
 {
-        Order* o;
-
-        if (NormalOrders.removeById(id, o))
-        {
-            cout << "Cancelled: ";
-            o->Print();
-            delete o;
-        }
-        else
-        {
-            cout << "Order not found in Normal\n";
-        }
+    Order* removed = nullptr;
+    if (VIPOrders.removeById(id, removed)) { delete removed; return; }
+    if (NormalOrders.removeById(id, removed)) { delete removed; return; }
+    if (ColdOrders.removeById(id, removed)) { delete removed; return; }
+    if (ReadyOrders.removeById(id, removed)) { delete removed; return; }
 }
 
 void Restaurant::PromoteOrder(int id)
 {
-    Order* o;
-
-    if (NormalOrders.removeById(id, o))
+    Order* removed = nullptr;
+    if (NormalOrders.removeById(id, removed))
     {
-        VIPOrders.enqueue(o);
-
-        cout << "Promoted: ";
-        o->Print();
-    }
-    else
-    {
-        cout << "Order not found\n";
+        // move to VIP queue
+        VIPOrders.enqueue(removed);
     }
 }
 
 void Restaurant::MoveToReady()
 {
-    Order* o;
-    int pri;
-
+    Order* o = nullptr;
     if (VIPOrders.dequeue(o))
     {
         ReadyOrders.enqueue(o);
-        cout << "VIP -> Ready: ";
-        o->Print();
         return;
     }
     if (NormalOrders.dequeue(o))
     {
         ReadyOrders.enqueue(o);
-        cout << "Normal -> Ready: ";
-        o->Print();
         return;
     }
     if (ColdOrders.dequeue(o))
     {
         ReadyOrders.enqueue(o);
-        cout << "Cold -> Ready: ";
-        o->Print();
+        return;
     }
 }
-
 
 void Restaurant::FinishOrder()
 {
-    Order* o;
-
+    Order* o = nullptr;
     if (ReadyOrders.dequeue(o))
     {
         FinishedOrders.push(o);
-        cout << "Finished: ";
-        o->Print();
     }
 }
 
-
 void Restaurant::MoveScooterToMaintenance()
 {
-    Scooter* s;
+    Scooter* s = nullptr;
     int pri;
-
     if (AvailableScooters.dequeue(s, pri))
     {
         MaintenanceScooters.enqueue(s);
@@ -114,7 +83,43 @@ void Restaurant::PrintFinished()
     while (!FinishedOrders.isEmpty())
     {
         FinishedOrders.pop(o);
-        o->Print();
+        if (o) o->Print();
     }
+}
 
+DerivedPriQueue<Order*>& Restaurant::getVIP()
+{
+    return VIPOrders;
+}
+
+DerivedQueue<Order*>& Restaurant::getNormal()
+{
+    return NormalOrders;
+}
+
+DerivedQueue<Order*>& Restaurant::getCold()
+{
+    return ColdOrders;
+}
+
+DerivedQueue<Order*>& Restaurant::getReady()
+{
+    return ReadyOrders;
+}
+
+LinkedStack<Order*>& Restaurant::getFinished()
+{
+    return FinishedOrders;
+}
+
+void Restaurant::SimulateStep(int t)
+{
+    // simple simulation: move one order to ready and finish one
+    MoveToReady();
+    FinishOrder();
+}
+
+bool Restaurant::IsFinished()
+{
+    return VIPOrders.isEmpty() && NormalOrders.isEmpty() && ColdOrders.isEmpty() && ReadyOrders.isEmpty();
 }

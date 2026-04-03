@@ -34,4 +34,6 @@ public:
     DerivedQueue<Order*>& getCold();
     DerivedQueue<Order*>& getReady();
     LinkedStack<Order*>& getFinished();
+    void SimulateStep(int t);
+    bool IsFinished();
 };

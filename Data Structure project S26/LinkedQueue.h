@@ -2,7 +2,8 @@
 #ifndef LINKED_QUEUE_
 #define LINKED_QUEUE_
 
-
+#include <iostream> 
+using namespace std;
 #include "Node.h"
 #include "QueueADT.h"
 
@@ -132,5 +133,6 @@ LinkedQueue<T>::~LinkedQueue()
 
 
 }
+
 #endif
 

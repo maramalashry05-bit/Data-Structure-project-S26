@@ -4,11 +4,17 @@
 
 #include "StackADT.h"
 #include "Node.h"
+#include <iostream>
+using namespace std;
 
 template <typename T>
 class LinkedStack : public StackADT<T> {
 private:
     Node<T>* topPtr; // Pointer to the top of the stack
+
+    // Disable shallow copying to avoid double-free issues
+    LinkedStack(const LinkedStack&) = delete;
+    LinkedStack& operator=(const LinkedStack&) = delete;
 
 public:
     // Constructor
@@ -49,7 +55,36 @@ public:
         TopEntry = topPtr->getItem();
         return true;
     }
-    
+
+    // Print IDs from top (most recent) to bottom
+    void printIDsReverse()
+    {
+        Node<T>* temp = topPtr;
+
+        while (temp)
+        {
+            T it = temp->getItem();
+            if (it)
+                cout << it->GetID() << " ";
+            else
+                cout << "(null) ";
+            temp = temp->getNext();
+        }
+        cout << endl;
+    }
+    int getCount()
+    {
+        int count = 0;
+        Node<T>* temp = topPtr;   
+
+        while (temp)
+        {
+            count++;
+            temp = temp->getNext();
+        }
+
+        return count;
+    }
 
     // Destructor
     ~LinkedStack() override {

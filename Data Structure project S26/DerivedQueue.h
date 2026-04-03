@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+using namespace std;
 #include "LinkedQueue.h"
 template <typename T> 
 
@@ -42,8 +44,54 @@ public :
 				target.enqueue(item);
 			}
 
+		
 	}
+
+	// print full items (assumes T is pointer type like Order* and operator<< is defined)
+	void print()
+	{
+		Node<T>* temp = this->frontPtr;
+
+		while (temp)
+		{
+			T it = temp->getItem();
+			if (it)
+				cout << *it << " ";
+			else
+				cout << "(null) ";
+			temp = temp->getNext();
+		}
+		cout << endl;
+	}
+
+	void printIDs()
+	{
+		Node<T>* temp = this->frontPtr;
 	
+		while (temp)
+		{
+			T it = temp->getItem();
+			if (it)
+				cout << it->GetID() << " ";
+			else
+				cout << "(null) ";
+			temp = temp->getNext();
+		}
+		cout << endl;
+	}
+	int getCount()
+	{
+		int count = 0;
+		Node<T>* temp = this->frontPtr;
+
+		while (temp)
+		{
+			count++;
+			temp = temp->getNext();
+		}
+
+		return count;
+	}
 
 };
 

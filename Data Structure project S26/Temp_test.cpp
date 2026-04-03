@@ -11,7 +11,8 @@
 #include "CancelAction.h"
 #include "PromoteAction.h"
 #include "MaintenanceAction.h"
-
+#include"DerivedPriQueue.h"
+#include "DerivedQueue.h"
 
 using namespace std;
 
@@ -214,6 +215,42 @@ int main()
            finished.pop(f);
            f->Print();
        }
+
     }
+     
+
+
+    cout << " \n===== DerivedQueue Test =====\n\n";
+
+    DerivedQueue<Order*> q;
+
+    // insert
+    q.enqueue(new Order(1, TYPE_OD, 2, 100));
+    q.enqueue(new Order(2, TYPE_OV, 3, 200));
+    q.enqueue(new Order(3, TYPE_OD, 1, 50));
+
+    // remove
+    Order* removed = nullptr;
+
+    if (q.removeById(2, removed))
+    {
+        cout << "Removed: ";
+        removed->Print();
+    }
+    else
+    {
+        cout << "Not found\n";
+    }
+
+    // print remaining
+    cout << "\nRemaining orders:\n";
+
+    Order* o;
+    while (!q.isEmpty())
+    {
+        q.dequeue(o);
+        o->Print();
+    }
+
     return 0;
 }

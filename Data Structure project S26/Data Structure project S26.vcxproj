@@ -140,6 +140,8 @@
     <ClInclude Include="ArrivalAction.h" />
     <ClInclude Include="CancelAction.h" />
     <ClInclude Include="Chef.h" />
+    <ClInclude Include="DerivedPriQueue.h" />
+    <ClInclude Include="DerivedQueue.h" />
     <ClInclude Include="LinkedQueue.h" />
     <ClInclude Include="LinkedStack.h" />
     <ClInclude Include="MaintenanceAction.h" />

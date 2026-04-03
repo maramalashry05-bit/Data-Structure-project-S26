@@ -1,178 +1,219 @@
 ﻿#include <iostream>
-#include <cassert>
-using namespace std;
-
 #include "LinkedStack.h"
 #include "LinkedQueue.h"
 #include "priQueue.h"
+#include "Order.h"
+#include "Chef.h"
+#include "Scooter.h"
+#include "Restaurant.h"
+#include "Action.h"
+#include "ArrivalAction.h"
+#include "CancelAction.h"
+#include "PromoteAction.h"
+#include "MaintenanceAction.h"
 
-// ================= HELPER =================
-void printTest(string name, bool pass) {
-    cout << (pass ? " PASS: " : " FAIL: ") << name << endl;
-}
 
-// ================= STACK TEST =================
-void testStack() {
-    cout << "\n===== STACK TEST =====\n";
+using namespace std;
 
-    LinkedStack<int> s;
-    int x;
+int main()
+{
+    Restaurant rest;
 
-    // Empty
-    printTest("Initially empty", s.isEmpty());
+    LinkedQueue<Action*> actions;
 
-    // Pop empty
-    printTest("Pop empty", !s.pop(x));
+    // ===== Actions =====
+    actions.enqueue(new ArrivalAction(0, 1, TYPE_OD, 2, 100));
+    actions.enqueue(new ArrivalAction(1, 2, TYPE_OV, 3, 200));
+    actions.enqueue(new CancelAction(2, 1));
+    actions.enqueue(new PromoteAction(3, 2));
+    actions.enqueue(new MaintenanceAction(4));
 
-    // Peek empty
-    printTest("Peek empty", !s.peek(x));
+    Action* act;
+    int time = 0;
 
-    // Push
-    s.push(10);
-    s.push(20);
-    s.push(30);
+    while (!actions.isEmpty())
+    {
+        actions.dequeue(act);
 
-    // Peek
-    s.peek(x);
-    printTest("Top is 30", x == 30);
+        cout << "\nTime Step: " << time++ << endl;
 
-    // LIFO
-    s.pop(x);
-    bool lifo = (x == 30);
-    s.pop(x);
-    lifo &= (x == 20);
-    s.pop(x);
-    lifo &= (x == 10);
+        act->Execute(&rest);
 
-    printTest("LIFO order", lifo);
+        rest.MoveToReady();
+        rest.FinishOrder();
 
-    // Back to empty
-    printTest("Empty after pops", s.isEmpty());
-
-    // Stress test
-    for (int i = 0; i < 5000; i++)
-        s.push(i);
-
-    bool correct = true;
-    for (int i = 4999; i >= 0; i--) {
-        s.pop(x);
-        if (x != i) correct = false;
+        delete act;
     }
 
-    printTest("Stress test", correct);
-}
+    cout << "\n--- Finished Orders ---\n";
+    rest.PrintFinished();
 
-// ================= QUEUE TEST =================
-void testQueue() {
-    cout << "\n===== QUEUE TEST =====\n";
+    
+    cout << "=== SIMULATION START ===\n";
 
-    LinkedQueue<int> q;
-    int x;
+    for (int t = 0; t < 3; t++)
+    {
+        cout << "\nTime Step: " << t << endl;
 
-    // Empty
-    printTest("Initially empty", q.isEmpty());
+     // ===== Lists =====
+          LinkedQueue<Order*> pendingNormal;
+           priQueue<Order*> pendingVIP;
 
-    // Dequeue empty
-    printTest("Dequeue empty", !q.dequeue(x));
+       priQueue<Order*> cooking;   
+       LinkedQueue<Order*> ready;
 
-    // Peek empty
-    printTest("Peek empty", !q.peek(x));
+       LinkedQueue<Chef*> availableChefs;
 
-    // Enqueue
-    q.enqueue(1);
-    q.enqueue(2);
-    q.enqueue(3);
+       priQueue<Scooter*> availableScooters;
+      LinkedQueue<Scooter*> maintenanceScooters;
 
-    // Peek
-    q.peek(x);
-    printTest("Front is 1", x == 1);
+        priQueue<Order*> inService;   // حسب finish time
+       LinkedStack<Order*> finished;
 
-    // FIFO
-    bool fifo = true;
+       // ===== Data =====
+        pendingNormal.enqueue(new Order(1, TYPE_OD, 2, 100));
+        pendingVIP.enqueue(new Order(2, TYPE_OV, 3, 200), 5); // priority
 
-    q.dequeue(x);
-    fifo &= (x == 1);
+        availableChefs.enqueue(new Chef(1, 5));
+        availableChefs.enqueue(new Chef(2, 6));
 
-    q.dequeue(x);
-    fifo &= (x == 2);
+        availableScooters.enqueue(new Scooter(1), 10);
 
-    q.dequeue(x);
-    fifo &= (x == 3);
+        // ================= 3.1 =================
+       Order* o;
+       Chef* c;
 
-    printTest("FIFO order", fifo);
+       if (!pendingVIP.isEmpty())
+       {
+           int pri;
+            pendingVIP.dequeue(o, pri);
+       }
+        else
+       {
+           pendingNormal.dequeue(o);
+       }
 
-    // Back to empty
-    printTest("Empty after dequeue", q.isEmpty());
+       availableChefs.dequeue(c);
 
-    // Mixed operations
-    q.enqueue(10);
-    q.enqueue(20);
-    q.dequeue(x); // remove 10
-    q.enqueue(30);
+       cooking.enqueue(o, 1); // priority fake (finish time later)
 
-    bool mix = true;
-    q.dequeue(x); mix &= (x == 20);
-    q.dequeue(x); mix &= (x == 30);
+       cout << "Moved to cooking: ";
+       o->Print();
 
-    printTest("Mixed operations", mix);
-}
+        //================= 3.2 =================
+       int pri;
+        Order* o2;
 
-// ================= PRIORITY QUEUE TEST =================
-void testPriorityQueue() {
-    cout << "\n===== PRIORITY QUEUE TEST =====\n";
+        cooking.dequeue(o2, pri);
+       ready.enqueue(o2);
 
-    priQueue<int> pq;
-    int value, pri;
+       cout << "Moved to ready: ";
+       o2->Print();
 
-    // Empty
-    printTest("Initially empty", pq.isEmpty());
+        // ================= 3.3 =================
+        Order* o3;
+        ready.dequeue(o3);
 
-    // Dequeue empty
-    printTest("Dequeue empty", !pq.dequeue(value, pri));
+        if (o3->GetType() == TYPE_OT)
+        {
+            finished.push(o3);
+            cout << "Finished (Takeaway): ";
+        }
+        else if (o3->GetType() == TYPE_OV)
+        {
+            Scooter* s;
+           int sp;
 
-    // Insert
-    pq.enqueue(100, 1);
-    pq.enqueue(200, 5);
-    pq.enqueue(300, 3);
+            availableScooters.dequeue(s, sp);
+            finished.push(o3);
 
-    // Peek highest priority
-    pq.peek(value, pri);
-    printTest("Highest priority first", (value == 200 && pri == 5));
+            cout << "Delivered by scooter: ";
+        }
+        else
+        {
+            inService.enqueue(o3, 1);
+            cout << "Moved to In-Service: ";
+        }
 
-    // Order check (descending priority)
-    bool correct = true;
+        o3->Print();
 
-    pq.dequeue(value, pri);
-    correct &= (value == 200);
+        // ================= 3.4 (Cancel) =================
+        int cancelID = 1;
+        LinkedQueue<Order*> temp;
+        Order* cur;
 
-    pq.dequeue(value, pri);
-    correct &= (value == 300);
+        while (!pendingNormal.isEmpty())
+        {
+            pendingNormal.dequeue(cur);
 
-    pq.dequeue(value, pri);
-    correct &= (value == 100);
+           if (cur->GetID() == cancelID)
+           {
+               cout << "Cancelled: ";
+                cur->Print();
+               delete cur;
+           }
+           else
+           {
+               temp.enqueue(cur);
+           }
+        }
 
-    printTest("Priority order", correct);
+        while (!temp.isEmpty())
+        {
+            temp.dequeue(cur);
+          pendingNormal.enqueue(cur);
+        }
 
-    // Duplicate priority
-    pq.enqueue(1, 2);
-    pq.enqueue(2, 2);
-    pq.enqueue(3, 2);
+        // ================= 3.7 =================
+        Order* o4;
+        if (!inService.isEmpty())
+        {
+            int p;
+            inService.dequeue(o4, p);
+            finished.push(o4);
 
-    pq.dequeue(value, pri);
-    pq.dequeue(value, pri);
-    pq.dequeue(value, pri);
+            cout << "Finished from table: ";
+            o4->Print();
+        }
 
-    printTest("Handle same priority", true); // depends on order
-}
+        //// ================= 3.8 =================
+        Scooter* s;
+        if (!availableScooters.isEmpty())
+        {
+            int sp;
+            availableScooters.dequeue(s, sp);
 
-// ================= MAIN =================
-int main() {
-    cout << " DATA STRUCTURE TESTING \n";
+            if (rand() % 2)
+            {
+                maintenanceScooters.enqueue(s);
+                cout << "Scooter → maintenance\n";
+            }
+            else
+           {
+                availableScooters.enqueue(s, sp);
+                cout << "Scooter reused\n";
+           }
+        }
 
-    testStack();
-    testQueue();
-    testPriorityQueue();
+      // ================= 3.9 =================
+       Scooter* s2;
+        if (!maintenanceScooters.isEmpty())
+       {
+           maintenanceScooters.dequeue(s2);
+         availableScooters.enqueue(s2, 5);
 
-    cout << "\n ALL TESTS COMPLETED\n";
+           cout << "Scooter back\n";
+       }
+
+        // ================= 3.10 =================
+       cout << "\n--- Finished Orders (Stack) ---\n";
+
+       Order* f;
+       while (!finished.isEmpty())
+       {
+           finished.pop(f);
+           f->Print();
+       }
+    }
     return 0;
 }

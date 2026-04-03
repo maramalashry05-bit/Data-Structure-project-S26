@@ -123,16 +123,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Action.cpp" />
+    <ClCompile Include="ArrivalAction.cpp" />
+    <ClCompile Include="CancelAction.cpp" />
+    <ClCompile Include="Chef.cpp" />
+    <ClCompile Include="MaintenanceAction.cpp" />
+    <ClCompile Include="Order.cpp" />
+    <ClCompile Include="PromoteAction.cpp" />
+    <ClCompile Include="Restaurant.cpp" />
+    <ClCompile Include="Scooter.cpp" />
+    <ClCompile Include="Table.cpp" />
     <ClCompile Include="Temp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Action.h" />
+    <ClInclude Include="ArrivalAction.h" />
+    <ClInclude Include="CancelAction.h" />
+    <ClInclude Include="Chef.h" />
     <ClInclude Include="LinkedQueue.h" />
     <ClInclude Include="LinkedStack.h" />
+    <ClInclude Include="MaintenanceAction.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Order.h" />
     <ClInclude Include="priNode.h" />
     <ClInclude Include="priQueue.h" />
+    <ClInclude Include="PromoteAction.h" />
     <ClInclude Include="QueueADT.h" />
+    <ClInclude Include="Restaurant.h" />
+    <ClInclude Include="Scooter.h" />
     <ClInclude Include="StackADT.h" />
+    <ClInclude Include="Table.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

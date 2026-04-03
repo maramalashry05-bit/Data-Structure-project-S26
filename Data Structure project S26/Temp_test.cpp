@@ -217,7 +217,6 @@ int main()
         }
 
     }
-    s
     cout << " \n===== DerivedQueue Test =====\n\n";
 
     DerivedQueue<Order*> q;

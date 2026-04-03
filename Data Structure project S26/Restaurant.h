@@ -7,6 +7,8 @@
 #include "Scooter.h"
 #include "DerivedQueue.h"
 #include "DerivedpriQueue.h"
+#include "Chef.h"
+#include "Action.h"
 class Restaurant
 {
 private:
@@ -18,6 +20,12 @@ private:
     priQueue<Scooter*> AvailableScooters;
     DerivedQueue<Scooter*> MaintenanceScooters;
 
+    // Chef pools
+    DerivedQueue<Chef*> NormalChefs;
+    DerivedQueue<Chef*> SpeedyChefs;
+
+    // Scheduled actions
+    LinkedQueue<Action*> Actions;
 public:
     void AddOrder(Order* o);
     void CancelOrder(int id);
@@ -36,4 +44,10 @@ public:
     LinkedStack<Order*>& getFinished();
     void SimulateStep(int t);
     bool IsFinished();
+    void AddChef(Chef* c);
+    void AssignChefToOrder();
+
+    // Action scheduling
+    void AddAction(Action* a);
+    void ExecuteActions(int time);
 };

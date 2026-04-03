@@ -1,4 +1,5 @@
 #include "Restaurant.h"
+#include "Chef.h"
 #include <iostream>
 
 using namespace std;
@@ -122,4 +123,85 @@ void Restaurant::SimulateStep(int t)
 bool Restaurant::IsFinished()
 {
     return VIPOrders.isEmpty() && NormalOrders.isEmpty() && ColdOrders.isEmpty() && ReadyOrders.isEmpty();
+}
+
+void Restaurant::AddChef(Chef* c)
+{
+    if (!c) return;
+    if (c->GetType() == CN)
+        NormalChefs.enqueue(c);
+    else
+        SpeedyChefs.enqueue(c);
+}
+
+void Restaurant::AssignChefToOrder()
+{
+    Order* o = nullptr;
+    Chef* ch = nullptr;
+
+    // First try Speedy chefs
+    int speedyCount = SpeedyChefs.getCount();
+    for (int i = 0; i < speedyCount; ++i)
+    {
+        if (!SpeedyChefs.dequeue(ch)) break;
+        if (ch && ch->IsAvailable())
+        {
+            if (ReadyOrders.dequeue(o))
+            {
+                ch->AssignOrder(o, 0); // using 0 as currentTime placeholder
+            }
+        }
+        // put chef back
+        SpeedyChefs.enqueue(ch);
+    }
+
+    // Then try Normal chefs
+    int normalCount = NormalChefs.getCount();
+    for (int i = 0; i < normalCount; ++i)
+    {
+        if (!NormalChefs.dequeue(ch)) break;
+        if (ch && ch->IsAvailable())
+        {
+            if (ReadyOrders.dequeue(o))
+            {
+                ch->AssignOrder(o, 0);
+            }
+        }
+        NormalChefs.enqueue(ch);
+    }
+}
+
+// Action scheduling
+void Restaurant::AddAction(Action* a)
+{
+    if (!a) return;
+    Actions.enqueue(a);
+}
+
+void Restaurant::ExecuteActions(int time)
+{
+    LinkedQueue<Action*> temp;
+    Action* act = nullptr;
+
+    while (!Actions.isEmpty())
+    {
+        Actions.dequeue(act);
+        if (!act) continue;
+        if (act->getTime() == time)
+        {
+            act->Execute(this);
+            delete act;
+        }
+        else
+        {
+            temp.enqueue(act);
+        }
+    }
+
+    // restore remaining actions
+    while (!temp.isEmpty())
+    {
+        temp.dequeue(act);
+        Actions.enqueue(act);
+    }
 }

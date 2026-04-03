@@ -7,9 +7,8 @@ enum ORD_TYPE { TYPE_OD, TYPE_OV, TYPE_OT };
 class Order
 {
 private:
-    int ID;
+    int ID, size; 
     ORD_TYPE type;
-    int size;     
     double money;
 
 public:
@@ -20,4 +19,5 @@ public:
 
     void Print() const;
     friend ostream& operator<<(ostream& out, const Order& o);
+    int GetSize() const;
 };

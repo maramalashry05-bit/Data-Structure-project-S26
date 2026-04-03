@@ -4,7 +4,8 @@
 class ArrivalAction : public Action
 {
 private:
-    int id, size, money;
+    int id, size;
+    double money; 
     ORD_TYPE type;
 
 public:

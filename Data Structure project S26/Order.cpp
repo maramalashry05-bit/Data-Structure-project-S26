@@ -33,3 +33,7 @@ ostream& operator<<(ostream& out, const Order& o)
     out << "OrderID: " << o.GetID();
     return out;
 }
+int Order::GetSize() const
+{
+    return size;
+}

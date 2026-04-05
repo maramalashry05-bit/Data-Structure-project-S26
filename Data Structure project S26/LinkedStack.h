@@ -86,6 +86,43 @@ public:
         return count;
     }
 
+    // Copy Constructor
+    LinkedStack(const LinkedStack<T>& other) {
+        topPtr = nullptr;
+
+        if (other.topPtr == nullptr)
+            return;
+
+        // First copy nodes in reverse order using temp stack
+        LinkedStack<T> temp;
+        Node<T>* current = other.topPtr;
+
+        while (current) {
+            temp.push(current->getItem());
+            current = current->getNext();
+        }
+
+        // Then restore correct order
+        T value;
+        while (!temp.isEmpty()) {
+            temp.pop(value);
+            push(value);
+        }
+    } 
+
+    void print() const {
+        Node<T>* current = topPtr;
+
+        cout << "Top -> ";
+        while (current) {
+            cout << current->getItem() << " -> ";
+            current = current->getNext();
+        }
+        cout << "NULL\n";
+    }
+
+
+
     // Destructor
     ~LinkedStack() override {
         T temp;

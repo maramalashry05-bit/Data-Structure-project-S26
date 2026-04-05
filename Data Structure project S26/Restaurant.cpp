@@ -204,4 +204,40 @@ void Restaurant::ExecuteActions(int time)
         temp.dequeue(act);
         Actions.enqueue(act);
     }
+
+
+
+
+
 }
+//void Restaurant::AssignOrdersToTables(int currentTime) {
+//    Order* order;
+//    while (ReadyDineIn.peek(order)) {
+//        Table* table = nullptr;
+//        int groupSize = order->GetNumSeats();
+//
+//        if (SmallTables.peek(table) && pTbl->getCapacity() >= groupSize) {
+//            SmallTables.dequeue(table);
+//        }
+//        else if (MediumTables.peek(table) && pTbl->getCapacity() >= groupSize) {
+//            MediumTables.dequeue(table);
+//        }
+//        else if (LargeTables.peek(table) && pTbl->getCapacity() >= groupSize) {
+//            LargeTables.dequeue(table);
+//        }
+//
+//        if (table) {
+//  
+//            ReadyDineIn.dequeue(order);
+//
+//            order->setServStartTime(currentTime);
+//
+//            order->setFinishTime(currentTime + order->getEatingTime());
+//
+//            order->setTable(table);
+//            InServiceOrders.enqueue(order); 
+//        }
+//        else {
+//            break;
+//        }
+//    }

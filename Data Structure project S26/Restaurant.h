@@ -12,6 +12,9 @@
 class Restaurant
 {
 private:
+    int TotalServedCount;
+    int TotalWaitTime;
+    int TotalServiceTime;
     DerivedPriQueue<Order*> VIPOrders;
     DerivedQueue<Order*> NormalOrders;
     DerivedQueue<Order*> ColdOrders;
@@ -19,6 +22,15 @@ private:
     LinkedStack<Order*> FinishedOrders;
     priQueue<Scooter*> AvailableScooters;
     DerivedQueue<Scooter*> MaintenanceScooters;
+    DerivedPriQueue<Table*> SmallTables;
+    DerivedPriQueue<Table*> MediumTables;
+    DerivedPriQueue<Table*> LargeTables;
+    DerivedQueue<Order*> ReadyDineIn; 
+    DerivedQueue<Order*> ReadyTakeaway; 
+    DerivedQueue<Order*> ReadyDelivery;
+    DerivedQueue<Scooter*> FastScooters;
+    DerivedQueue<Scooter*> SlowScooters;
+    priQueue<Order*> FinishedList;
 
     // Chef pools
     DerivedQueue<Chef*> NormalChefs;
@@ -50,4 +62,8 @@ public:
     // Action scheduling
     void AddAction(Action* a);
     void ExecuteActions(int time);
+    void AssignOrdersToTables(int currentTime);
+    void AssignOrdersToScooters(int currentTime);
+    void HandleScooterMaintenance();
+    void GenerateFinalReport();
 };

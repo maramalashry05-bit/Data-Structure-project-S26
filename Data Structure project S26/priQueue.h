@@ -59,4 +59,29 @@ public:
     bool isEmpty() const {
         return head == nullptr;
     }
+
+    // Copy Constructor
+    priQueue(const priQueue<T>& other) {
+        head = nullptr;
+
+        priNode<T>* current = other.head;
+
+        while (current) {
+            enqueue(current->getItem(), current->getPri());
+            current = current->getNext();
+        }
+    }
+
+    void print() const {
+        priNode<T>* current = head;
+
+        cout << "Head -> ";
+        while (current) {
+            int pri;
+            T val = current->getItem(pri);
+            cout << "(" << val << ", p=" << pri << ") -> ";
+            current = current->getNext();
+        }
+        cout << "NULL\n";
+    }
 };

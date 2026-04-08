@@ -145,7 +145,7 @@ public:
 	{
 
 		//Free all nodes in the queue
-		T *temp;
+		T *temp=nullptr;
 		while (dequeue(*temp));
 
 

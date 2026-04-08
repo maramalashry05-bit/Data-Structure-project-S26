@@ -1,5 +1,8 @@
 #include "Order.h"
+Order::Order()
+{
 
+}
 Order::Order(int id, ORD_TYPE t, int s, double m)
 {
     ID = id;

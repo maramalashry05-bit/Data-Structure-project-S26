@@ -1,340 +1,297 @@
 #include "Restaurant.h"
-#include "Chef.h"
 #include <iostream>
 
 using namespace std;
 
-//void Restaurant::AddOrder(Order* o)
-//{
-//    if (!o) return;
-//    ORD_TYPE t = o->GetType();
-//    if (t == TYPE_OV)
-//        VIPOrders.enqueue(o);
-//    else if (t == TYPE_OT)
-//        ColdOrders.enqueue(o);
-//    else
-//        NormalOrders.enqueue(o);
-//}
-//
-//void Restaurant::CancelOrder(int id)
-//{
-//    Order* removed = nullptr;
-//    if (VIPOrders.removeById(id, removed)) { delete removed; return; }
-//    if (NormalOrders.removeById(id, removed)) { delete removed; return; }
-//    if (ColdOrders.removeById(id, removed)) { delete removed; return; }
-//    if (ReadyOrders.removeById(id, removed)) { delete removed; return; }
-//}
-//
-//void Restaurant::PromoteOrder(int id)
-//{
-//    Order* removed = nullptr;
-//    if (NormalOrders.removeById(id, removed))
-//    {
-//        // move to VIP queue
-//        VIPOrders.enqueue(removed);
-//    }
-//}
-//
-//void Restaurant::MoveToReady()
-//{
-//    Order* o = nullptr;
-//    if (VIPOrders.dequeue(o))
-//    {
-//        ReadyOrders.enqueue(o);
-//        return;
-//    }
-//    if (NormalOrders.dequeue(o))
-//    {
-//        ReadyOrders.enqueue(o);
-//        return;
-//    }
-//    if (ColdOrders.dequeue(o))
-//    {
-//        ReadyOrders.enqueue(o);
-//        return;
-//    }
-//}
-//
-//void Restaurant::FinishOrder()
-//{
-//    Order* o = nullptr;
-//    if (ReadyOrders.dequeue(o))
-//    {
-//        FinishedOrders.push(o);
-//    }
-//}
-//
-//void Restaurant::MoveScooterToMaintenance()
-//{
-//    Scooter* s = nullptr;
-//    int pri;
-//    if (AvailableScooters.dequeue(s, pri))
-//    {
-//        MaintenanceScooters.enqueue(s);
-//        cout << "Scooter -> Maintenance\n";
-//    }
-//}
-//
-//void Restaurant::PrintFinished()
-//{
-//    Order* o;
-//
-//    cout << "\nFinished Orders:\n";
-//
-//    while (!FinishedOrders.isEmpty())
-//    {
-//        FinishedOrders.pop(o);
-//        if (o) o->Print();
-//    }
-//}
-//
-//DerivedPriQueue<Order*>& Restaurant::getVIP()
-//{
-//    return VIPOrders;
-//}
-//
-//DerivedQueue<Order*>& Restaurant::getNormal()
-//{
-//    return NormalOrders;
-//}
-//
-//DerivedQueue<Order*>& Restaurant::getCold()
-//{
-//    return ColdOrders;
-//}
-//
-//DerivedQueue<Order*>& Restaurant::getReady()
-//{
-//    return ReadyOrders;
-//}
-//
-//LinkedStack<Order*>& Restaurant::getFinished()
-//{
-//    return FinishedOrders;
-//}
-//
-//void Restaurant::SimulateStep(int t)
-//{
-//    // simple simulation: move one order to ready and finish one
-//    MoveToReady();
-//    FinishOrder();
-//}
-//
-//bool Restaurant::IsFinished()
-//{
-//    return VIPOrders.isEmpty() && NormalOrders.isEmpty() && ColdOrders.isEmpty() && ReadyOrders.isEmpty();
-//}
-//
-//void Restaurant::AddChef(Chef* c)
-//{
-//    if (!c) return;
-//    if (c->GetType() == CN)
-//        NormalChefs.enqueue(c);
-//    else
-//        SpeedyChefs.enqueue(c);
-//}
-//
-//void Restaurant::AssignChefToOrder()
-//{
-//    Order* o = nullptr;
-//    Chef* ch = nullptr;
-//
-//    // First try Speedy chefs
-//    int speedyCount = SpeedyChefs.getCount();
-//    for (int i = 0; i < speedyCount; ++i)
-//    {
-//        if (!SpeedyChefs.dequeue(ch)) break;
-//        if (ch && ch->IsAvailable())
-//        {
-//            if (ReadyOrders.dequeue(o))
-//            {
-//                ch->AssignOrder(o, 0); // using 0 as currentTime placeholder
-//            }
-//        }
-//        // put chef back
-//        SpeedyChefs.enqueue(ch);
-//    }
-//
-//    // Then try Normal chefs
-//    int normalCount = NormalChefs.getCount();
-//    for (int i = 0; i < normalCount; ++i)
-//    {
-//        if (!NormalChefs.dequeue(ch)) break;
-//        if (ch && ch->IsAvailable())
-//        {
-//            if (ReadyOrders.dequeue(o))
-//            {
-//                ch->AssignOrder(o, 0);
-//            }
-//        }
-//        NormalChefs.enqueue(ch);
-//    }
-//}
-//
-//void Restaurant::AssignOrdersToTables(int currentTime) {
-//    Order* order;
-//    while (ReadyDineIn.peek(order)) {
-//        Table* table = nullptr;
-//        int groupSize = order->GetNumSeats();
-//
-//        if (SmallTables.peek(table) && table->getCapacity() >= groupSize) {
-//            SmallTables.dequeue(table);
-//        }
-//        else if (MediumTables.peek(table) && table->getCapacity() >= groupSize) {
-//            MediumTables.dequeue(table);
-//        }
-//        else if (LargeTables.peek(table) && table->getCapacity() >= groupSize) {
-//            LargeTables.dequeue(table);
-//        }
-//
-//        if (table) {
-//
-//            ReadyDineIn.dequeue(order);
-//
-//            order->SetServiceStartTime(currentTime);
-//
-//            order->SetFinishTime(currentTime + order->getEatingTime());
-//
-//            order->setTable(table);
-//            InServiceOrders.enqueue(order);
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//}
-//
-//
-//void Restaurant::AssignOrdersToScooters(int currentTime)
-//{
-//    Order* order;
-//    while (ReadyDelivery.peek(order)) {
-//        Scooter* scoot = nullptr;
-//        if (!FastScooters.isEmpty()) {
-//            FastScooters.dequeue(scoot);
-//        }
-//        else if (!SlowScooters.isEmpty()) {
-//            SlowScooters.dequeue(scoot);
-//        }
-//
-//        if (scoot) {
-//            ReadyDelivery.dequeue(order);
-//
-//            order->SetServiceStartTime(currentTime);
-//            int travelTime = order->GetDistance() / scoot->GetSpeed();
-//            order->SetFinishTime(currentTime + travelTime);
-//
-//            order->setScooter(scoot);
-//            scoot->incrementTrips();
-//            InServiceOrders.enqueue(order, order->getFinishTime());
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//}
-//void Restaurant::UpdateServiceStatus(int currentTime) {
-//    Order* order;
-//    int fTime;
-//
-//
-//    while (InServiceOrders.peek(order, fTime)) {
-//        if (fTime <= currentTime) {
-//            InServiceOrders.dequeue(order, fTime);
-//
-//
-//            if (order->getTable()) {
-//                Table* t = order->getTable();
-//                t->SetAvailable(true);
-//
-//                if (t->getCapacity() < 4) SmallTables.enqueue(t);
-//                else if (t->getCapacity() < 10) MediumTables.enqueue(t);
-//                else LargeTables.enqueue(t);
-//            }
-//            else if (order->getScooter()) {
-//                Scooter* s = order->getScooter();
-//                if (s->GetTrips() >= N) MaintenanceScooters.enqueue(s);
-//                else {
-//                    if (s->IsFast()) FastScooters.enqueue(s);
-//                    else SlowScooters.enqueue(s);
-//                }
-//            }
-//
-//
-//            FinishedList.enqueue(order, fTime);
-//        }
-//        else {
-//            break;
-//        }
-//    }
-//}
-//void Restaurant::GenerateFinalReport() {
-//
-//    cout << "\n--- SIMULATION COMPLETED ---\n";
-//    cout << "FT\tID\tAT\tWT\tST" << endl;
-//
-//    Order* order;
-//    int ft;
-//    int count = 0;
-//    float sumWT = 0, sumST = 0;
-//
-//
-//    while (FinishedList.dequeue(order, ft)) {
-//
-//        int wt = order->getServiceStartTime() - order->getArrivalTime();
-//        int st = order->getFinishTime() - order->getServiceStartTime();
-//        cout << ft << "\t" << order->GetID() << "\t" << order->getArrivalTime()
-//            << "\t" << wt << "\t" << st << endl;
-//
-//        sumWT += wt;
-//        sumST += st;
-//        count++;
-//    }
-//
-//    cout << "------------------------------------------------" << endl;
-//    if (count > 0) {
-//        cout << "Average Wait Time: " << sumWT / count << endl;
-//        cout << "Average Service Time: " << sumST / count << endl;
-//    }
-//    else {
-//        cout << "No orders were completed." << endl;
-//    }
-//}
-//
-//
-//
-//
-//// Action scheduling
-//void Restaurant::AddAction(Action* a)
-//{
-//    if (!a) return;
-//    Actions.enqueue(a);
-//}
-//
-//void Restaurant::ExecuteActions(int time)
-//{
-//    LinkedQueue<Action*> temp;
-//    Action* act = nullptr;
-//
-//    while (!Actions.isEmpty())
-//    {
-//        Actions.dequeue(act);
-//        if (!act) continue;
-//        if (act->getTime() == time)
-//        {
-//            act->Execute(this);
-//            delete act;
-//        }
-//        else
-//        {
-//            temp.enqueue(act);
-//        }
-//    }
-//
-//    // restore remaining actions
-//    while (!temp.isEmpty())
-//    {
-//        temp.dequeue(act);
-//        Actions.enqueue(act);
-//    }
-//}
+// =========================================================================
+// Order Management
+// =========================================================================
+
+void Restaurant::AddOrder(Order* o)
+{
+    // Route the order to the correct pending queue based on its type.
+    // Note: Adjust the exact enum types based on your definitions in Order.h
+    ORD_TYPE type = o->GetType();
+
+    if (type == TYPE_OD) {
+        PEND_ODN.enqueue(o);
+    }
+    else if (type == TYPE_OV) {
+        // Example: calculating a priority equation for VIP orders
+        int priority = (o->getEatingTime() + o->GetSize()) / o->GetDistance();
+        PEND_OVG.enqueue(o, priority);
+    }
+    else {
+        // TYPE_OT
+        PEND_OT.enqueue(o);
+    }
+}
+
+void Restaurant::CancelOrder(int id)
+{
+    // Attempt to cancel from PEND_OVC (using your custom class method)
+    bool cancelled = Pend_OVC.CancelOrder(id);
+
+    if (cancelled) {
+        cout << "Order " << id << " cancelled successfully." << endl;
+    }
+    else {
+        // You would typically also implement a search/remove in PEND_ODN 
+        // if normal delivery orders can be cancelled.
+        cout << "Order " << id << " not found for cancellation." << endl;
+    }
+}
+
+void Restaurant::PromoteOrder(int id)
+{
+    LinkedQueue<Order*> tempQueue;
+    Order* currentOrder = nullptr;
+    bool found = false;
+
+    // Search through normal pending orders
+    while (PEND_ODN.dequeue(currentOrder))
+    {
+        if (currentOrder->GetID() == id)
+        {
+            found = true;
+            // Promote to VIP: Calculate priority and push to PEND_OVG
+            int newPriority = 100; // Replace with actual priority equation
+            PEND_OVG.enqueue(currentOrder, newPriority);
+        }
+        else
+        {
+            tempQueue.enqueue(currentOrder);
+        }
+    }
+
+    // Restore the normal queue
+    while (tempQueue.dequeue(currentOrder))
+    {
+        PEND_ODN.enqueue(currentOrder);
+    }
+}
+
+// =========================================================================
+// Lifecycle Phase Transitions
+// =========================================================================
+
+void Restaurant::MoveToReady()
+{
+    // Iterate through cooking orders to see if they are done
+    // This requires inspecting Cooking_Orders (which inherits from priQueue)
+    // You will need a mechanism to check if current time >= order->getFinishTime()
+}
+
+void Restaurant::FinishOrder()
+{
+    Order* finishedOrder = nullptr;
+    int priority;
+
+    // Move completed orders from InServ_Orders to the finished list
+    // (Requires checking if current time >= service finish time)
+    // Example conceptual loop:
+    /*
+    while (InServ_Orders.peek(finishedOrder, priority)) {
+        if (currentTime >= finishedOrder->getFinishTime()) {
+            InServ_Orders.dequeue(finishedOrder, priority);
+            // Assuming you add a FinishedList (LinkedStack) to your .h
+            // FinishedList.push(finishedOrder);
+
+            TotalServedCount++;
+            TotalWaitTime += (finishedOrder->getServiceStartTime() - finishedOrder->getArrivalTime());
+            TotalServiceTime += (finishedOrder->getFinishTime() - finishedOrder->getServiceStartTime());
+        } else {
+            break;
+        }
+    }
+    */
+}
+
+void Restaurant::MoveScooterToMaintenance()
+{
+    Scooter* returningScooter = nullptr;
+    int priority;
+
+    // Check scooters that are cutting back
+    while (Back_Scooters.peek(returningScooter, priority))
+    {
+        // Check if it reached the restaurant
+        Back_Scooters.dequeue(returningScooter, priority);
+
+        // Check maintenance threshold (e.g., 5 trips)
+        if (returningScooter->GetTrips() >= 5)
+        {
+            Maint_Scooters.enqueue(returningScooter);
+        }
+        else
+        {
+            // Back to free scooters
+            returningScooter->SetAvailable(true);
+            Free_Scooters.enqueue(returningScooter, returningScooter->GetSpeed());
+        }
+    }
+}
+
+// =========================================================================
+// Resource Assignment
+// =========================================================================
+
+void Restaurant::AddChef(Chef* c)
+{
+    if (c->GetType() == CN) {
+        Free_CN.enqueue(c);
+    }
+    else {
+        Free_CS.enqueue(c);
+    }
+}
+
+void Restaurant::AssignChefToOrder()
+{
+    // Example logic: Assign a Normal Chef to a Normal Order
+    Order* pendingOrder = nullptr;
+    Chef* availableChef = nullptr;
+
+    if (!PEND_ODN.isEmpty() && !Free_CN.isEmpty())
+    {
+        PEND_ODN.dequeue(pendingOrder);
+        Free_CN.dequeue(availableChef);
+
+        // Uses the AssignOrder method you defined in Chef.cpp
+        int currentTime = 0; // Replace with actual simulation time variable
+        availableChef->AssignOrder(pendingOrder, currentTime);
+        pendingOrder->SetServiceStartTime(currentTime);
+        pendingOrder->SetFinishTime(availableChef->GetFinishTime());
+
+        // Note: Your Cook_Ords queue is defined as priQueue<Order> (by value).
+        // If pendingOrder is a pointer, you will need to dereference it:
+        // Cooking_Orders.enqueue(*pendingOrder, priority); 
+    }
+}
+
+void Restaurant::AssignOrdersToTables(int currentTime)
+{
+    // Logic using your Fit_Tables class
+    Order* readyTableOrder = nullptr;
+
+    if (RDY_OT.peek(readyTableOrder))
+    {
+        Table* bestTable=nullptr;
+        if (Free_Tables.getBestFit(readyTableOrder->GetNumSeats(), *bestTable))
+        {
+            RDY_OT.dequeue(readyTableOrder);
+            readyTableOrder->setTable(bestTable);
+            // Move table to busy queue, calculate finish time, etc.
+        }
+    }
+}
+
+void Restaurant::AssignOrdersToScooters(int currentTime)
+{
+    Order* readyDeliveryOrder = nullptr;
+    Scooter* availableScooter = nullptr;
+    int scooterPri;
+
+    if (!RDY_OD.isEmpty() && !Free_Scooters.isEmpty())
+    {
+        RDY_OD.dequeue(readyDeliveryOrder);
+        Free_Scooters.dequeue(availableScooter, scooterPri);
+
+        readyDeliveryOrder->setScooter(availableScooter);
+        availableScooter->incrementTrips();
+        availableScooter->SetAvailable(false);
+
+        // Calculate delivery duration
+        int deliveryDuration = readyDeliveryOrder->GetDistance() / availableScooter->GetSpeed();
+        readyDeliveryOrder->SetFinishTime(currentTime + deliveryDuration);
+
+        // Add to In-Service priority queue (priority based on finish time)
+        InServ_Orders.enqueue(readyDeliveryOrder, -readyDeliveryOrder->getFinishTime());
+    }
+}
+
+void Restaurant::UpdateServiceStatus(int currentTime)
+{
+    // Check maintenance scooters: 
+    // If a scooter has been in maintenance for its fixed duration, dequeue and reset trips
+    Scooter* maintScooter = nullptr;
+    if (Maint_Scooters.peek(maintScooter))
+    {
+        // Example check
+        Maint_Scooters.dequeue(maintScooter);
+        maintScooter->resetTrips();
+        maintScooter->SetAvailable(true);
+        Free_Scooters.enqueue(maintScooter, maintScooter->GetSpeed());
+    }
+}
+
+// =========================================================================
+// Action Scheduling & Engine
+// =========================================================================
+
+void Restaurant::AddAction(Action* a)
+{
+    Actions.enqueue(a);
+}
+
+void Restaurant::ExecuteActions(int time)
+{
+    Action* act = nullptr;
+    while (Actions.peek(act))
+    {
+        if (act->getTime() == time)
+        {
+            Actions.dequeue(act);
+            // Assuming your actions have an Execute(this) method
+            // act->Execute(this); 
+            delete act;
+        }
+        else
+        {
+            break; // Actions are usually sorted by time; if this is in the future, stop checking.
+        }
+    }
+}
+
+void Restaurant::PrintFinished()
+{
+    Finished_orders.printIDsReverse();
+}
+
+LinkedStack<Order*>& Restaurant::getFinished()
+{
+    return Finished_orders;
+}
+
+void Restaurant::SimulateStep(int t)
+{
+    ExecuteActions(t);
+    UpdateServiceStatus(t);
+    MoveScooterToMaintenance();
+    MoveToReady();
+
+    AssignChefToOrder();
+    AssignOrdersToTables(t);
+    AssignOrdersToScooters(t);
+
+    FinishOrder();
+}
+
+bool Restaurant::IsFinished()
+{
+    // The simulation is finished if all queues are empty
+    return (PEND_ODN.isEmpty() && PEND_OVG.isEmpty() && PEND_OT.isEmpty() &&
+        RDY_OD.isEmpty() && RDY_OT.isEmpty() /* && RDY_OV.isEmpty() */ &&
+        Actions.isEmpty() && InServ_Orders.isEmpty());
+}
+
+void Restaurant::GenerateFinalReport()
+{
+    cout << "================ FINISHED ================" << endl;
+    cout << "Total Orders Served: " << TotalServedCount << endl;
+
+    if (TotalServedCount > 0) {
+        cout << "Average Wait Time: " << (TotalWaitTime / TotalServedCount) << endl;
+        cout << "Average Service Time: " << (TotalServiceTime / TotalServedCount) << endl;
+    }
+}

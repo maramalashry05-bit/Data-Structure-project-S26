@@ -1,4 +1,8 @@
 #include "Table.h"
+Table::Table()
+{
+
+}
 Table::Table(int id)
 {
     ID = id;

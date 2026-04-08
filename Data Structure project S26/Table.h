@@ -10,6 +10,7 @@ private:
     int Capacity;
 
 public:
+    Table();
 
     Table(int id);
 

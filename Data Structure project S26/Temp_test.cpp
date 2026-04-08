@@ -52,7 +52,7 @@ int main()
         // =========================
         // 4) Print UI (Member 3)
         // =========================
-        cout << "\n--- CURRENT STATE ---\n";
+       /* cout << "\n--- CURRENT STATE ---\n";
 
         cout << "VIP Orders: ";
         r.getVIP().printIDs();
@@ -70,9 +70,9 @@ int main()
         r.getFinished().printIDsReverse();
 
         cout << "\n----------------------\n";
+
+
+    cout << "\n===== TEST FINISHED =====\n";*/
     }
-
-    cout << "\n===== TEST FINISHED =====\n";
-
     return 0;
 }

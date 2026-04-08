@@ -26,6 +26,8 @@ private:
     RDY_OV RDY_OV;
     PEND_OVC Pend_OVC;
     Cook_Ords Cooking_Orders;
+    LinkedQueue<Order*> Cancelled_orders;
+    LinkedStack<Order*> Finished_orders;
     LinkedQueue<Chef*> Free_CS;
     LinkedQueue<Chef*> Free_CN;
     priQueue<Order*> InServ_Orders;
@@ -47,10 +49,6 @@ public:
     void MoveScooterToMaintenance();
 
     void PrintFinished();
-    DerivedPriQueue<Order*>& getVIP();
-    DerivedQueue<Order*>& getNormal();
-    DerivedQueue<Order*>& getCold();
-    DerivedQueue<Order*>& getReady();
     LinkedStack<Order*>& getFinished();
     void SimulateStep(int t);
     bool IsFinished();

@@ -20,7 +20,7 @@ private:
     Table* assignedTable;
     int ArrivalTime;
 public:
-
+    Order();
     Order(int id, ORD_TYPE t, int s, double m);
 
     int GetID() const;

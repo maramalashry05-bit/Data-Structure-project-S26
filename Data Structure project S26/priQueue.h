@@ -13,7 +13,7 @@ public:
     priQueue() : head(nullptr) {}
 
     ~priQueue() {
-        T *tmp;
+        T *tmp=nullptr;
         int p;
         while (dequeue(*tmp, p));
     }

@@ -1,16 +1,38 @@
 #include "Scooter.h"
-Scooter::Scooter(int id)
-{
+Scooter::Scooter(int id, int speed, bool fast) {
     ID = id;
-    available = true;
+    Speed = speed;
+    isFast = fast;
+    isAvailable = true;
+    TripsDone = 0;
 }
 bool Scooter::IsAvailable() const
 {
-    return available;
+    return isAvailable;
 }
 void Scooter::SetAvailable(bool a)
 {
-    available = a;
+    isAvailable = a;
+}
+int Scooter::GetID() const {
+    return ID;
+}
+
+int Scooter::GetSpeed() const {
+    return Speed;
+}
+bool Scooter::IsFast() const {
+    return isFast;
+}
+int Scooter::GetTrips() const {
+    return TripsDone;
+}
+void Scooter::incrementTrips() {
+    TripsDone++;
+}
+
+void Scooter::resetTrips() {
+    TripsDone = 0;
 }
 void Scooter::Print() const
 {

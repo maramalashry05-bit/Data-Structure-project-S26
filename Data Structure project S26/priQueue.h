@@ -13,9 +13,9 @@ public:
     priQueue() : head(nullptr) {}
 
     ~priQueue() {
-        T tmp;
+        T *tmp;
         int p;
-        while (dequeue(tmp, p));
+        while (dequeue(*tmp, p));
     }
 
     //insert the new node in its correct position according to its priority
@@ -65,9 +65,9 @@ public:
         head = nullptr;
 
         priNode<T>* current = other.head;
-
+        int pri = current->getPri();
         while (current) {
-            enqueue(current->getItem(), current->getPri());
+            enqueue(current->getItem(pri), current->getPri());
             current = current->getNext();
         }
     }

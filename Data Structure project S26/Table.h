@@ -6,13 +6,16 @@ class Table
 {
 private:
     int ID;
-    bool available;
+    bool isAvailable;
+    int Capacity;
 
 public:
+
     Table(int id);
 
     bool IsAvailable() const;
     void SetAvailable(bool a);
 
     void Print() const;
+    int getCapacity() const;
 };

@@ -18,7 +18,6 @@ public:
 
 	/////////////////////////////////////////////////////////////////////////////////////////
 
-	template <typename T>
 	LinkedQueue()
 	{
 		backPtr = nullptr;
@@ -34,7 +33,7 @@ public:
 	Input: None.
 	Output: True if the queue is empty; otherwise false.
 	*/
-	template <typename T>
+	
 	bool isEmpty() const
 	{
 		return (frontPtr == nullptr);
@@ -49,7 +48,7 @@ public:
 	Output: True if the operation is successful; otherwise false.
 	*/
 
-	template <typename T>
+	
 	bool enqueue(const T& newEntry)
 	{
 		Node<T>* newNodePtr = new Node<T>(newEntry);
@@ -74,7 +73,7 @@ public:
 	Output: True if the operation is successful; otherwise false.
 	*/
 
-	template <typename T>
+	
 	bool dequeue(T& frntEntry)
 	{
 		if (isEmpty())
@@ -105,7 +104,7 @@ public:
 	Output: The front of the queue.
 	*/
 
-	template <typename T>
+
 	bool peek(T& frntEntry) const
 	{
 		if (isEmpty())
@@ -116,7 +115,7 @@ public:
 
 	}
 	// Copy constructor
-	template<typename T>
+	
 	LinkedQueue(const LinkedQueue<T>& other)
 	{
 		frontPtr = backPtr = nullptr;
@@ -129,7 +128,7 @@ public:
 		}
 	}
 	///////////////////////////////////////////////////////////////////////////////////
-	template <typename T>
+
 	void  print() const {
 		Node<T>* current = frontPtr;
 
@@ -142,13 +141,12 @@ public:
 	}
 
 
-	template <typename T>
 	~LinkedQueue()
 	{
 
 		//Free all nodes in the queue
-		T temp;
-		while (dequeue(temp));
+		T *temp;
+		while (dequeue(*temp));
 
 
 	}

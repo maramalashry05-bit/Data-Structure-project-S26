@@ -57,6 +57,9 @@
     <ClCompile Include="MaintenanceAction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Node.h">
@@ -108,6 +111,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MaintenanceAction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DerivedPriQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DerivedQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PEND_OVC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Fit_Tables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Cook_Ords.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RDY_OV.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

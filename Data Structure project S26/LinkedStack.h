@@ -13,7 +13,7 @@ private:
     Node<T>* topPtr; // Pointer to the top of the stack
 
     // Disable shallow copying to avoid double-free issues
-    LinkedStack(const LinkedStack&) = delete;
+ 
     LinkedStack& operator=(const LinkedStack&) = delete;
 
 public:

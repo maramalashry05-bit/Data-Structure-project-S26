@@ -2,17 +2,21 @@
 Table::Table(int id)
 {
     ID = id;
-    available = true;
+    isAvailable = true;
 }
 bool Table::IsAvailable() const
 {
-    return available;
+    return isAvailable;
 }
 void Table::SetAvailable(bool a)
 {
-    available = a;
+    isAvailable = a;
 }
 void Table::Print() const
 {
     cout << "Table ID: " << ID << endl;
+}
+int Table::getCapacity() const
+{
+    return Capacity;
 }

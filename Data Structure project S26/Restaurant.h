@@ -14,6 +14,7 @@
 class Restaurant
 {
 private:
+   
     int TotalServedCount;
     float TotalWaitTime;
     float TotalServiceTime;
@@ -61,4 +62,6 @@ public:
     // Action scheduling
     void AddAction(Action* a);
     void ExecuteActions(int time);
+   
+     
 };

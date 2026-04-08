@@ -6,73 +6,63 @@ using namespace std;
 #include "CancelAction.h"
 #include "PromoteAction.h"
 #include "Chef.h"
+#include <cstdlib>
+#include <ctime>
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(0)));
     Restaurant r;
 
-    cout << "===== SYSTEM TEST START =====\n";
+    int idCounter = 1;
+    int simulationDuration = 50; 
 
-    // =========================
-    // 1) Add Chefs (Member 2)
-    // =========================
     r.AddChef(new Chef(1, CN, 5));
-    r.AddChef(new Chef(2, CS, 8));
-    r.AddChef(new Chef(3, CN, 4));
+    r.AddChef(new Chef(2, CS, 5));
 
-    // =========================
-    // 2) Add Actions (Member 1)
-    // =========================
-    r.AddAction(new ArrivalAction(1, 1, TYPE_OD, 2, 100));
-    r.AddAction(new ArrivalAction(2, 2, TYPE_OV, 3, 200));
-    r.AddAction(new ArrivalAction(3, 3, TYPE_OT, 1, 50));
+    cout << "--- RESTAURANT SIMULATION STARTING ---" << endl;
 
-    r.AddAction(new CancelAction(4, 1));
-    r.AddAction(new PromoteAction(5, 3));
+    for (int t = 1; t <= simulationDuration; t++) {
+        cout << "\n[ Time Step: " << t << " ]" << endl;
 
-    // =========================
-    // 3) Simulation Loop
-    // =========================
-    for (int t = 1; t <= 7; t++)
-    {
-        cout << "\n====== Time Step: " << t << " ======\n";
+        int arrivalProb = rand() % 100 + 1;
+        if (arrivalProb <= 70) {
+            int typeRoll = rand() % 100 + 1;
+            ORD_TYPE type;
 
-        // Execute actions
-        r.ExecuteActions(t);
+            if (typeRoll <= 45) type = TYPE_OD;      
+            else if (typeRoll <= 80) type = TYPE_OV; 
+            else type = TYPE_OT;                    
 
-        // Assign chefs
-        r.AssignChefToOrder();
-
-        // Move to ready
-        r.MoveToReady();
-
-        // Finish orders
-        r.FinishOrder();
-
-        // =========================
-        // 4) Print UI (Member 3)
-        // =========================
-       /* cout << "\n--- CURRENT STATE ---\n";
-
-        cout << "VIP Orders: ";
-        r.getVIP().printIDs();
-
-        cout << "Normal Orders: ";
-        r.getNormal().printIDs();
-
-        cout << "Cold Orders: ";
-        r.getCold().printIDs();
-
-        cout << "Ready Orders: ";
-        r.getReady().printIDs();
-
-        cout << "Finished Orders: ";
-        r.getFinished().printIDsReverse();
-
-        cout << "\n----------------------\n";
+            int dist = rand() % 30 + 1;
+            double money = (rand() % 450) + 50;
 
 
-    cout << "\n===== TEST FINISHED =====\n";*/
+            Action* pAct = new ArrivalAction(t, idCounter++, type, dist, money);
+            pAct->Execute(&r);
+            delete pAct;
+
+            cout << ">> New order generated! ID: " << (idCounter - 1) << endl;
+        }
+
+     
+        r.ExecuteActions(t);     
+        r.AssignChefToOrder();   
+        r.MoveToReady();         
+
+        r.AssignOrdersToTables(t); 
+        r.AssignOrdersToScooters(t); 
+        r.UpdateServiceStatus(t);    
+
+    
     }
+
+    cout << "\n========================================" << endl;
+    cout << "SIMULATION COMPLETE. GENERATING REPORT..." << endl;
+    cout << "========================================\n" << endl;
+
+    r.GenerateFinalReport();
+
+    system("pause");
     return 0;
 }

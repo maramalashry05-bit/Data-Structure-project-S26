@@ -20,7 +20,15 @@ void Table::Print() const
 {
     cout << "Table ID: " << ID << endl;
 }
+void Table::setCapacity(int c)
+{
+    Capacity = c;
+}
 int Table::getCapacity() const
 {
     return Capacity;
+}
+int Table::getID() const
+{
+    return ID;
 }

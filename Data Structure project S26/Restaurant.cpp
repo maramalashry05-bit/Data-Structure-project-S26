@@ -169,23 +169,6 @@ void Restaurant::AssignChefToOrder()
     }
 }
 
-void Restaurant::AssignOrdersToTables(int currentTime)
-{
-    // Logic using your Fit_Tables class
-    Order* readyTableOrder = nullptr;
-
-    if (RDY_OT.peek(readyTableOrder))
-    {
-        Table* bestTable=nullptr;
-        if (Free_Tables.getBestFit(readyTableOrder->GetNumSeats(), *bestTable))
-        {
-            RDY_OT.dequeue(readyTableOrder);
-            readyTableOrder->setTable(bestTable);
-            // Move table to busy queue, calculate finish time, etc.
-        }
-    }
-}
-
 void Restaurant::AssignOrdersToScooters(int currentTime)
 {
     Order* readyDeliveryOrder = nullptr;
@@ -209,6 +192,138 @@ void Restaurant::AssignOrdersToScooters(int currentTime)
         InServ_Orders.enqueue(readyDeliveryOrder, -readyDeliveryOrder->getFinishTime());
     }
 }
+
+// =========================================================================
+// MEMBER 3 WORKLOAD: Tables, Takeaway, and VIP Overwait
+// =========================================================================
+
+// Feature 10: Assign Table
+void Restaurant::AssignOrdersToTables(int currentTime)
+{
+    Order* readyDineInOrder = nullptr;
+
+    // Check the Ready queue for Dine-in orders (Assuming TYPE_OT is Table/Dine-in)
+    while (RDY_OT.peek(readyDineInOrder))
+    {
+        Table  * bestTable=nullptr;
+
+        // Find best table using the updated getBestFit function
+        if (Free_Tables.getBestFit(readyDineInOrder->GetNumSeats(), bestTable))
+        {
+            // Successfully found a table, so remove the order from Ready queue
+            RDY_OT.dequeue(readyDineInOrder);
+
+            // Assign table and calculate service times
+            // NOTE: We use new Table(bestTable) so the order holds a valid pointer
+            // to a table object on the heap, not a local variable address.
+            readyDineInOrder->setTable(bestTable);
+            readyDineInOrder->SetServiceStartTime(currentTime);
+            readyDineInOrder->SetFinishTime(currentTime + readyDineInOrder->getEatingTime());
+
+            // Push to In-Service priority queue. 
+            // We use negative finish time so orders finishing sooner stay at the front
+            InServ_Orders.enqueue(readyDineInOrder, -readyDineInOrder->getFinishTime());
+
+            // Move Table to the appropriate busy queue
+            // (Assumes you have a way to define if a table is sharable or not)
+            // For now, placing in Busy_No_Sharable
+            Busy_No_Sharable.enqueue(bestTable, 0);
+        }
+        else
+        {
+            // No tables available that fit this order's size. Stop trying.
+            break;
+        }
+    }
+}
+
+// Feature 7: Check finished Dine-In orders
+void Restaurant::CheckFinishedDineInOrders(int currentTime)
+{
+    Order* finishedOrder = nullptr;
+    int priority;
+    priQueue<Order*> tempQueue;
+
+    // Go through the In-Service queue
+    while (InServ_Orders.dequeue(finishedOrder, priority))
+    {
+        // If it's a Table order AND its finish time has arrived
+        if (finishedOrder->GetType() == TYPE_OT && currentTime >= finishedOrder->getFinishTime())
+        {
+            // 1. Move to Finished list
+            Finished_orders.push(finishedOrder);
+
+            // 2. Free the table
+            Table* assignedTable = finishedOrder->getTable();
+            if (assignedTable != nullptr)
+            {
+                // Put table back into Free_Tables (Capacity is its priority)
+                assignedTable->SetAvailable(true);
+                Free_Tables.enqueue(assignedTable, assignedTable->getCapacity());
+
+                // Note: You will also need to remove it from Busy_No_Sharable
+                // using a loop similar to what we did in getBestFit().
+            }
+        }
+        else
+        {
+            // Not finished, or not a Dine-In order. Save it in temp queue.
+            tempQueue.enqueue(finishedOrder, priority);
+        }
+    }
+
+    // Restore the In-Service queue
+    while (tempQueue.dequeue(finishedOrder, priority))
+    {
+        InServ_Orders.enqueue(finishedOrder, priority);
+    }
+}
+
+// Feature 12: Finalize Takeaway Orders
+void Restaurant::FinalizeTakeawayOrders(int currentTime)
+{
+    Order* takeawayOrder = nullptr;
+
+   
+    while (RDY_OT.dequeue(takeawayOrder))
+    {
+        takeawayOrder->SetServiceStartTime(currentTime);
+        takeawayOrder->SetFinishTime(currentTime); // Instant service
+
+        // Push directly to finished list
+        Finished_orders.push(takeawayOrder);
+    }
+    
+}
+
+// ? BONUS: Order overwait for Ready OVG only
+void Restaurant::CheckOverwaitOVG(int currentTime)
+{
+    int MAX_WAIT_TIME = 15;
+    Order *currentOrder=nullptr;
+    LinkedQueue<Order> tempQueue;
+
+    while (RDY_OV.dequeue(currentOrder))
+    {
+        // Now using getReadyTime()!
+        int waitTime = currentTime - currentOrder->getReadyTime();
+
+        if (waitTime > MAX_WAIT_TIME)
+        {
+            cout << ">> [EMERGENCY] VIP Vegan Order " << currentOrder->GetID()
+                << " has been waiting for a scooter for " << waitTime << " mins!" << endl;
+
+            // (Handle priority boost or complain logic here)
+        }
+
+        tempQueue.enqueue(*currentOrder);
+    }
+
+    while (tempQueue.dequeue(*currentOrder)) {
+        RDY_OV.enqueue(currentOrder);
+    }
+}
+
 
 void Restaurant::UpdateServiceStatus(int currentTime)
 {

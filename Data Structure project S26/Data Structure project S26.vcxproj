@@ -142,8 +142,6 @@
     <ClInclude Include="CancelAction.h" />
     <ClInclude Include="Chef.h" />
     <ClInclude Include="Cook_Ords.h" />
-    <ClInclude Include="DerivedPriQueue.h" />
-    <ClInclude Include="DerivedQueue.h" />
     <ClInclude Include="Fit_Tables.h" />
     <ClInclude Include="LinkedQueue.h" />
     <ClInclude Include="LinkedStack.h" />

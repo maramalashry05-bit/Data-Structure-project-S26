@@ -113,12 +113,6 @@
     <ClInclude Include="MaintenanceAction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DerivedPriQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DerivedQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UI.h">
       <Filter>Header Files</Filter>
     </ClInclude>

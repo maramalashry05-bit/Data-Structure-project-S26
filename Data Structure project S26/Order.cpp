@@ -10,6 +10,10 @@ Order::Order(int id, ORD_TYPE t, int s, double m)
     size = s;
     money = m;
     assignedScooter = nullptr;
+    ArrivalTime = 0;
+    EatingTime = 0;
+    FinishTime = 0;
+    ReadyTime = 0;
 }
 
 int Order::GetID() const
@@ -20,6 +24,16 @@ int Order::GetID() const
 ORD_TYPE Order::GetType() const
 {
     return type;
+}
+
+void Order::setType(ORD_TYPE t)
+{
+    type = t;
+}
+
+double Order::getMoney() const
+{
+    return money;
 }
 
 void Order::Print() const
@@ -100,4 +114,14 @@ void Order::setArrivalTime(int aTime) {
 }
 int Order::getArrivalTime() const {
     return ArrivalTime;
+}
+
+void Order::setReadyTime(int t)
+{
+    ReadyTime = t;
+}
+
+int Order::getReadyTime() const
+{
+    return ReadyTime;
 }

@@ -19,13 +19,16 @@ private:
     Scooter* assignedScooter;
     Table* assignedTable;
     int ArrivalTime;
+    int ReadyTime;
 public:
     Order();
     Order(int id, ORD_TYPE t, int s, double m);
 
     int GetID() const;
     ORD_TYPE GetType() const;
-
+    // Add these to the public section of Order.h
+    void setType(ORD_TYPE t);
+    double getMoney() const;
     void Print() const;
     friend ostream& operator<<(ostream& out, const Order& o);
     int GetSize() const;
@@ -39,8 +42,10 @@ public:
     void setScooter(Scooter* s);
     Scooter* getScooter() const;
     Table* getTable() const;
-    void setArrivalTime(int wTime);
+    void setArrivalTime(int t);
     int getArrivalTime() const;
+    void setReadyTime(int t);
+    int getReadyTime() const;
     int getServiceStartTime() const;
     int getFinishTime() const;
     int GetNumSeats() const;

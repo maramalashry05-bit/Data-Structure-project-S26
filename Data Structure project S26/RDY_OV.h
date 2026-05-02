@@ -1,30 +1,31 @@
 #pragma once
-#pragma once
 #include "LinkedQueue.h"
 #include "Order.h"
 
-class RDY_OV : public LinkedQueue<Order>
+// Inherit from LinkedQueue<Order*> to store pointers
+class RDY_OV : public LinkedQueue<Order*>
 {
 public:
     // Cancel order by ID
     bool CancelOrder(int id)
     {
-        LinkedQueue<Order> temp;
+        LinkedQueue<Order*> temp;
 
-        Order *current;
+        Order* current = nullptr; 
         bool found = false;
-
-        while (this->dequeue(*current)) {
-            if (current->GetID() == id) {
-                found = true; // skip it (delete)
+        //Cancel logic
+        while (this->dequeue(current)) {
+            if (current->GetID() == id) { 
+                found = true;
+                delete current; 
                 continue;
             }
-            temp.enqueue(*current);
+            temp.enqueue(current);
         }
 
         // restore queue
-        while (temp.dequeue(*current)) {
-            this->enqueue(*current);
+        while (temp.dequeue(current)) {
+            this->enqueue(current);
         }
 
         return found;

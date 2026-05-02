@@ -13,7 +13,8 @@
 #include"Fit_Tables.h"
 class Restaurant
 {
-private:
+// Made public just to test remember to return it to private
+public:
    
     int TotalServedCount;
     float TotalWaitTime;
@@ -55,13 +56,16 @@ public:
     bool IsFinished();
     void AddChef(Chef* c);
     void AssignChefToOrder();
-    void AssignOrdersToTables(int currentTime);
     void AssignOrdersToScooters(int currentTime);
     void UpdateServiceStatus(int currentTime);
     void GenerateFinalReport();
     // Action scheduling
     void AddAction(Action* a);
     void ExecuteActions(int time);
-   
+    // Add these inside class Restaurant in Restaurant.h
+    void AssignOrdersToTables(int currentTime);       // Feature 10
+    void FinalizeTakeawayOrders(int currentTime);     // Feature 12
+    void CheckFinishedDineInOrders(int currentTime);  // Feature 7
+    void CheckOverwaitOVG(int currentTime);           // BONUS
      
 };

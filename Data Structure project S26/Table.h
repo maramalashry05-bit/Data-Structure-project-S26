@@ -18,5 +18,7 @@ public:
     void SetAvailable(bool a);
 
     void Print() const;
+    void setCapacity(int c);
     int getCapacity() const;
+    int getID() const;
 };

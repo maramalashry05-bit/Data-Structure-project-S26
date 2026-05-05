@@ -45,7 +45,7 @@ public:
     void CancelOrder(int id);
     void PromoteOrder(int id);
 
-    void MoveToReady();
+    void MoveToReady(int currentTime);
     void FinishOrder();
 
     void MoveScooterToMaintenance();
@@ -67,5 +67,7 @@ public:
     void FinalizeTakeawayOrders(int currentTime);     // Feature 12
     void CheckFinishedDineInOrders(int currentTime);  // Feature 7
     void CheckOverwaitOVG(int currentTime);           // BONUS
-     
+     void AssignChefToOrder(int currentTime);     // feature 8 
+   void UpdateMaintenanceList(int currentTime); // feature 5
+   void HandleComboAssignment(Order* comboOrd, int currentTime); // bonus
 };

@@ -9,67 +9,67 @@ using namespace std;
 #include <cstdlib>
 #include <ctime>
 
-int main()
-{
-    srand(static_cast<unsigned int>(time(0)));
-    Restaurant r;
-
-    int idCounter = 1;
-    int simulationDuration = 50; 
-
-    r.AddChef(new Chef(1, CN, 5));
-    r.AddChef(new Chef(2, CS, 5));
-
-    cout << "--- RESTAURANT SIMULATION STARTING ---" << endl;
-
-    for (int t = 1; t <= simulationDuration; t++) {
-        cout << "\n[ Time Step: " << t << " ]" << endl;
-
-        int arrivalProb = rand() % 100 + 1;
-        if (arrivalProb <= 70) {
-            int typeRoll = rand() % 100 + 1;
-            ORD_TYPE type;
-
-            if (typeRoll <= 45) type = TYPE_OD;      
-            else if (typeRoll <= 80) type = TYPE_OV; 
-            else type = TYPE_OT;                    
-
-            int dist = rand() % 30 + 1;
-            double money = (rand() % 450) + 50;
-
-
-            Action* pAct = new ArrivalAction(t, idCounter++, type, dist, money);
-            pAct->Execute(&r);
-            delete pAct;
-
-            cout << ">> New order generated! ID: " << (idCounter - 1) << endl;
-        }
-
-     
-        r.ExecuteActions(t);     
-        r.AssignChefToOrder();   
-        r.MoveToReady();         
-
-        r.AssignOrdersToTables(t); 
-        r.AssignOrdersToScooters(t); 
-        r.UpdateServiceStatus(t);    
-
-    
-    }
-
-    cout << "\n========================================" << endl;
-    cout << "SIMULATION COMPLETE. GENERATING REPORT..." << endl;
-    cout << "========================================\n" << endl;
-
-    r.GenerateFinalReport();
-
-    system("pause");
-
-
-
-
-    return 0;
-}
+//int main()
+//{
+//    srand(static_cast<unsigned int>(time(0)));
+//    Restaurant r;
+//
+//    int idCounter = 1;
+//    int simulationDuration = 50; 
+//
+//    r.AddChef(new Chef(1, CN, 5));
+//    r.AddChef(new Chef(2, CS, 5));
+//
+//    cout << "--- RESTAURANT SIMULATION STARTING ---" << endl;
+//
+//    for (int t = 1; t <= simulationDuration; t++) {
+//        cout << "\n[ Time Step: " << t << " ]" << endl;
+//
+//        int arrivalProb = rand() % 100 + 1;
+//        if (arrivalProb <= 70) {
+//            int typeRoll = rand() % 100 + 1;
+//            ORD_TYPE type;
+//
+//            if (typeRoll <= 45) type = TYPE_OD;      
+//            else if (typeRoll <= 80) type = TYPE_OV; 
+//            else type = TYPE_OT;                    
+//
+//            int dist = rand() % 30 + 1;
+//            double money = (rand() % 450) + 50;
+//
+//
+//            Action* pAct = new ArrivalAction(t, idCounter++, type, dist, money);
+//            pAct->Execute(&r);
+//            delete pAct;
+//
+//            cout << ">> New order generated! ID: " << (idCounter - 1) << endl;
+//        }
+//
+//     
+//        r.ExecuteActions(t);     
+//        r.AssignChefToOrder();   
+//        r.MoveToReady(t);         
+//
+//        r.AssignOrdersToTables(t); 
+//        r.AssignOrdersToScooters(t); 
+//        r.UpdateServiceStatus(t);    
+//
+//    
+//    }
+//
+//    cout << "\n========================================" << endl;
+//    cout << "SIMULATION COMPLETE. GENERATING REPORT..." << endl;
+//    cout << "========================================\n" << endl;
+//
+//    r.GenerateFinalReport();
+//
+//    system("pause");
+//
+//
+//
+//
+//    return 0;
+//}
 
 
 //
@@ -168,3 +168,105 @@ int main()
 //
 //    return 0;
 //}
+
+// Test for the work of Member 2 
+
+//#include <iostream>
+//#include "Restaurant.h"
+//#include "Chef.h"
+//#include "Order.h"
+//
+//#include <iostream>
+//#include "Restaurant.h"
+//#include "Chef.h"
+//#include "Order.h"
+//
+//using namespace std;
+//
+//int main() {
+//    cout << "--- Initializing Restaurant Test ---" << endl;
+//    Restaurant myResto;
+//
+//    // 1. Add Chefs (Speed > 0 to prevent crash)
+//    cout << "Adding Chefs..." << endl;
+//    myResto.AddChef(new Chef(1, CS, 10)); // Speedy Chef
+//    myResto.AddChef(new Chef(2, CN, 5));  // Normal Chef
+//
+//    // 2. Create and Add Orders (Distance > 0 to prevent crash)
+//    cout << "Adding Orders..." << endl;
+//
+//    Order* vOrder = new Order(501, TYPE_OV, 20, 100.0); // VIP
+//    vOrder->SetDistance(10); // CRITICAL: Avoid division by zero
+//    myResto.AddOrder(vOrder);
+//
+//    Order* nOrder = new Order(101, TYPE_OD, 10, 50.0);  // Normal
+//    nOrder->SetDistance(5);
+//    myResto.AddOrder(nOrder);
+//
+//    // 3. Run Simulation Step
+//    int T = 1;
+//    cout << "\n--- Simulating Step T=" << T << " ---" << endl;
+//
+//    // Assignment Logic
+//    myResto.AssignChefToOrder(T);
+//
+//    // Check if assignments happened (you can add a print function in Restaurant to verify)
+//    cout << "Assignment complete. Check 'Cooking_Orders' queue status." << endl;
+//
+//    // 4. Advance time to see items move to READY
+//    T = 5;
+//    cout << "\n--- Advancing to T=" << T << " ---" << endl;
+//    myResto.MoveToReady(T);
+//
+//    cout << "Simulation check complete. No crashes detected." << endl;
+//
+//    return 0;
+//}
+
+
+
+// Test for Member 4 
+#include <iostream>
+#include "Restaurant.h"
+#include "Order.h"
+
+using namespace std;
+
+int main() {
+    cout << "--- Member 4: Outputs & Cancellations Test ---" << endl;
+    Restaurant myResto;
+
+    // 1. Setup Data
+    Order* ord1 = new Order(201, TYPE_OD, 10, 50.0);
+    ord1->setArrivalTime(1);
+    myResto.AddOrder(ord1);
+
+    Order* ordToCancel = new Order(202, TYPE_OD, 15, 60.0);
+    myResto.AddOrder(ordToCancel);
+
+    // 2. Test Cancellation (Feature 4)
+    cout << "Attempting to cancel Order 202..." << endl;
+    myResto.CancelOrder(202);
+
+    // 3. Test Statistics (Feature 6 & 13)
+    // Manually simulating a finished order to check stat calculation
+    ord1->SetServiceStartTime(2); // Wait = 1
+    ord1->SetFinishTime(5);       // Service = 3
+
+    // We manually move it to finished for this test
+    myResto.getFinished().push(ord1);
+    myResto.TotalServedCount = 1;
+    myResto.TotalWaitTime = 1;
+    myResto.TotalServiceTime = 3;
+
+    // 4. Generate Output (Feature 13)
+   /* cout << "Generating Final Report File..." << endl;
+    myResto.GenerateFinalReport();
+
+    cout << "\n--- Test Complete ---" << endl;
+    cout << "Check 'Simulation_Report.txt' for the results." << endl;*/
+
+    return 0;
+}
+
+

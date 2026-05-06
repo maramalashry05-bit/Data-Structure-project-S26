@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 using namespace std;
-
+#pragma once    
 #include "Restaurant.h"
 #include "ArrivalAction.h"
 #include "CancelAction.h"
@@ -342,67 +342,93 @@ using namespace std;
 //
 //    return 0;
 //}
-int main()
-{
-    Restaurant r;
+//int main()
+//{
+//    Restaurant r;
+//
+//    // IMPORTANT: initialize stats
+//    r.TotalServedCount = 0;
+//    r.TotalWaitTime = 0;
+//    r.TotalServiceTime = 0;
+//
+//    // =========================
+//    // Create sample orders
+//    // =========================
+//
+//    Order* o1 = new Order(1, TYPE_OD, 2, 50);
+//    o1->setArrivalTime(0);
+//    o1->setReadyTime(2);
+//    o1->SetServiceStartTime(3);
+//    o1->SetFinishTime(10);
+//
+//    Order* o2 = new Order(2, TYPE_OV, 3, 70);
+//    o2->setArrivalTime(1);
+//    o2->setReadyTime(3);
+//    o2->SetServiceStartTime(4);
+//    o2->SetFinishTime(8);
+//
+//    Order* o3 = new Order(3, TYPE_OT, 1, 30);
+//    o3->setArrivalTime(2);
+//    o3->setReadyTime(4);
+//    o3->SetServiceStartTime(5);
+//    o3->SetFinishTime(12);
+//
+//    // =========================
+//    // Push to finished stack
+//    // =========================
+//    r.getFinished().push(o1);
+//    r.getFinished().push(o2);
+//    r.getFinished().push(o3);
+//
+//    // update stats manually
+//    r.TotalServedCount = 3;
+//
+//    r.TotalWaitTime =
+//        (o1->getServiceStartTime() - o1->getArrivalTime()) +
+//        (o2->getServiceStartTime() - o2->getArrivalTime()) +
+//        (o3->getServiceStartTime() - o3->getArrivalTime());
+//
+//    r.TotalServiceTime =
+//        (o1->getFinishTime() - o1->getServiceStartTime()) +
+//        (o2->getFinishTime() - o2->getServiceStartTime()) +
+//        (o3->getFinishTime() - o3->getServiceStartTime());
+//
+//    // =========================
+//    // Add one cancelled order
+//    // =========================
+//    Order* o4 = new Order(4, TYPE_OD, 2, 40);
+//    r.Cancelled_orders.enqueue(o4);
+//
+//    // =========================
+//    // Run Feature 13
+//    // =========================
+//    r.GenerateFinalReport();
+//
+//    return 0;
+//}
+int main() {
+    Restaurant* pRest = new Restaurant();
+    UI* pUI = new UI();
 
-    // IMPORTANT: initialize stats
-    r.TotalServedCount = 0;
-    r.TotalWaitTime = 0;
-    r.TotalServiceTime = 0;
+    string fileName;
+    cout << "Enter input file name: ";
+    cin >> fileName;
 
-    // =========================
-    // Create sample orders
-    // =========================
+    // --- THIS IS THE FIX ---
+    cin.ignore(100, '\n'); // Clears the "Enter" key from memory
+    // -----------------------
 
-    Order* o1 = new Order(1, TYPE_OD, 2, 50);
-    o1->setArrivalTime(0);
-    o1->setReadyTime(2);
-    o1->SetServiceStartTime(3);
-    o1->SetFinishTime(10);
+    pRest->LoadInputFile(fileName);
 
-    Order* o2 = new Order(2, TYPE_OV, 3, 70);
-    o2->setArrivalTime(1);
-    o2->setReadyTime(3);
-    o2->SetServiceStartTime(4);
-    o2->SetFinishTime(8);
+    // Let's verify right here before starting
+    // If this says 0, your 'Actions' queue variable name might be different 
+    // from the one 'IsFinished' is checking.
+    cout << "Press Enter to start simulation..." << endl;
+    cin.get();
 
-    Order* o3 = new Order(3, TYPE_OT, 1, 30);
-    o3->setArrivalTime(2);
-    o3->setReadyTime(4);
-    o3->SetServiceStartTime(5);
-    o3->SetFinishTime(12);
+    pRest->ExecuteSimulation(pUI);
 
-    // =========================
-    // Push to finished stack
-    // =========================
-    r.getFinished().push(o1);
-    r.getFinished().push(o2);
-    r.getFinished().push(o3);
-
-    // update stats manually
-    r.TotalServedCount = 3;
-
-    r.TotalWaitTime =
-        (o1->getServiceStartTime() - o1->getArrivalTime()) +
-        (o2->getServiceStartTime() - o2->getArrivalTime()) +
-        (o3->getServiceStartTime() - o3->getArrivalTime());
-
-    r.TotalServiceTime =
-        (o1->getFinishTime() - o1->getServiceStartTime()) +
-        (o2->getFinishTime() - o2->getServiceStartTime()) +
-        (o3->getFinishTime() - o3->getServiceStartTime());
-
-    // =========================
-    // Add one cancelled order
-    // =========================
-    Order* o4 = new Order(4, TYPE_OD, 2, 40);
-    r.Cancelled_orders.enqueue(o4);
-
-    // =========================
-    // Run Feature 13
-    // =========================
-    r.GenerateFinalReport();
-
+    delete pRest;
+    delete pUI;
     return 0;
 }

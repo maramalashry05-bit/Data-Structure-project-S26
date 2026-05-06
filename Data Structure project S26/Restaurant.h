@@ -1,5 +1,7 @@
 #pragma once
-
+#include "ArrivalAction.h"
+#include <fstream>
+#include "CancelAction.h"
 #include "LinkedQueue.h"
 #include "LinkedStack.h"
 #include "priQueue.h"
@@ -11,11 +13,12 @@
 #include"Cook_Ords.h"
 #include"RDY_OV.h"
 #include"Fit_Tables.h"
+#include "UI.h"
+#include "PromoteAction.h"
 class Restaurant
 {
-// Made public just to test remember to return it to private
+    friend class UI;
 public:
-   
     int TotalServedCount;
     float TotalWaitTime;
     float TotalServiceTime;
@@ -70,4 +73,7 @@ public:
      void AssignChefToOrder(int currentTime);     // feature 8 
    void UpdateMaintenanceList(int currentTime); // feature 5
    void HandleComboAssignment(Order* comboOrd, int currentTime); // bonus
+   void LoadInputFile(string filename);
+   void ExecuteSimulation(UI* pUI);
+   void HandleScooterBreakdowns(int currentTime);
 };

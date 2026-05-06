@@ -650,3 +650,107 @@ void Restaurant::GenerateFinalReport()
     cout << "Normal Chefs: " << Free_CN.getCount() << endl;
     cout << "Speedy Chefs: " << Free_CS.getCount() << endl;
 }
+
+void Restaurant::LoadInputFile(string filename) {
+    ifstream inFile(filename);
+
+    if (!inFile.is_open()) {
+        // DEBUG 1: Did the file even open?
+        cout << "[DEBUG] Error: Could not open file: " << filename << endl;
+        cout << "[DEBUG] Make sure " << filename << " is in the project folder." << endl;
+        return;
+    }
+
+    cout << "[DEBUG] File opened successfully! Starting to read actions..." << endl;
+
+    char actionType;
+    int time, id, typeInt, size, money;
+    int count = 0;
+
+    while (inFile >> time >> actionType) {
+        if (actionType == 'R') {
+            inFile >> id >> typeInt >> size >> money;
+            ORD_TYPE oType = static_cast<ORD_TYPE>(typeInt);
+            Action* pAct = new ArrivalAction(time, id, oType, size, money);
+            AddAction(pAct);
+            count++;
+        }
+        else if (actionType == 'X') {
+            inFile >> id;
+            Action* pAct = new CancelAction(time, id);
+            AddAction(pAct);
+            count++;
+        }
+    }
+
+    // DEBUG 2: How many actions did we actually load?
+    cout << "[DEBUG] Finished loading. Total actions in queue: " << count << endl;
+
+    inFile.close();
+}
+
+
+
+  
+void Restaurant::ExecuteSimulation(UI* pUI) {
+    int currentTime = 1; 
+
+    while (!IsFinished()) {
+
+        ExecuteActions(currentTime);
+
+        UpdateServiceStatus(currentTime);   
+        MoveScooterToMaintenance();         
+        UpdateMaintenanceList(currentTime); 
+        MoveToReady(currentTime);           
+
+        AssignChefToOrder(currentTime);     
+        AssignOrdersToTables(currentTime);  
+
+        AssignOrdersToScooters(currentTime);
+
+        HandleScooterBreakdowns(currentTime);
+
+        pUI->PrintAll(*this, currentTime);
+        cin.get();
+        currentTime++; 
+        
+    }
+    
+    GenerateFinalReport();
+}
+void Restaurant::HandleScooterBreakdowns(int currentTime) {
+    priQueue<Order*> tempInServ;
+    Order* pOrd = nullptr;
+    int priority;
+
+    while (InServ_Orders.dequeue(pOrd, priority)) {
+        Scooter* s = pOrd->getScooter();
+
+        if (s != nullptr && s->GetTrips() > 3 && (rand() % 100 < 5)) {
+            Maint_Scooters.enqueue(s);
+
+            Scooter* newScooter = nullptr;
+            int sPri;
+            if (Free_Scooters.dequeue(newScooter, sPri)) {
+                pOrd->setScooter(newScooter);
+                newScooter->incrementTrips();
+                int remainingTime = pOrd->GetDistance() / newScooter->GetSpeed();
+                pOrd->SetFinishTime(currentTime + remainingTime);
+
+                tempInServ.enqueue(pOrd, -pOrd->getFinishTime());
+            }
+            else {
+                pOrd->setScooter(nullptr);
+                RDY_OD.enqueue(pOrd);
+            }
+        }
+        else {
+            tempInServ.enqueue(pOrd, priority);
+        }
+    }
+
+    while (tempInServ.dequeue(pOrd, priority)) {
+        InServ_Orders.enqueue(pOrd, priority);
+    }
+}

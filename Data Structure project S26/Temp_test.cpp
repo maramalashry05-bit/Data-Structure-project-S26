@@ -285,60 +285,124 @@ using namespace std;
 #include "Chef.h"
 #include "Order.h"
 
-using namespace std;
+//using namespace std;
 
-int main() {
-    Restaurant myResto;
-    UI myUI;
+//int main() {
+//    Restaurant myResto;
+//    UI myUI;
+//
+//    cout << "=== Integrated Test: Members 2, 3, & 4 ===" << endl;
+//
+//    // --- SETUP (Member 3: List Initializations) ---
+//    // Adding Chefs (Member 2: Resource setup)
+//    myResto.AddChef(new Chef(1, CS, 10)); // Speedy
+//    myResto.AddChef(new Chef(2, CN, 5));  // Normal
+//
+//    // Adding Tables (Member 3: Table list)
+//    // Assuming Table constructor: Table(ID, Capacity)
+//    Table* t1 = new Table(1);
+//    t1->setCapacity(4);
+//    myResto.Free_Tables.enqueue(t1, t1->getCapacity());
+//
+//    // --- INPUT (Member 3: Pending Lists) ---
+//    Order* o1 = new Order(75, TYPE_OV, 20, 100.0); // VIP
+//    o1->setArrivalTime(1);
+//    o1->SetDistance(10);
+//    myResto.AddOrder(o1);
+//
+//    Order* o2 = new Order(6, TYPE_OT, 5, 30.0);   // Dine-in (Table)
+//    o2->setArrivalTime(1);
+//    o2->SetEatingTime(10);
+//    myResto.AddOrder(o2);
+//
+//    // --- SIMULATION LOOP ---
+//    for (int t = 1; t <= 5; t++) {
+//        cout << "\nExecuting timestep " << t << "..." << endl;
+//
+//        // 1. Assignment Logic (Member 2: Kitchen & Member 3: Table assignment)
+//        myResto.AssignChefToOrder(t);
+//        myResto.AssignOrdersToTables(t);
+//
+//        // 2. Movement Logic (Member 2: Cooking to Ready)
+//        myResto.MoveToReady(t);
+//
+//        // 3. Service & Stats Logic (Member 4: Finish Delivery/Dine-in)
+//        myResto.UpdateServiceStatus(t);
+//        myResto.CheckFinishedDineInOrders(t);
+//
+//        // 4. UI Output (Member 3: Program Interface display)
+//        myUI.PrintAll(myResto, t);
+//
+//        cout << "------------------------------------------" << endl;
+//    }
+//
+//    // --- FINAL OUTPUT (Member 4: Statistics) ---
+//    cout << "\nSimulation Finished. Generating Report..." << endl;
+//    myResto.GenerateFinalReport();
+//
+//    return 0;
+//}
+int main()
+{
+    Restaurant r;
 
-    cout << "=== Integrated Test: Members 2, 3, & 4 ===" << endl;
+    // IMPORTANT: initialize stats
+    r.TotalServedCount = 0;
+    r.TotalWaitTime = 0;
+    r.TotalServiceTime = 0;
 
-    // --- SETUP (Member 3: List Initializations) ---
-    // Adding Chefs (Member 2: Resource setup)
-    myResto.AddChef(new Chef(1, CS, 10)); // Speedy
-    myResto.AddChef(new Chef(2, CN, 5));  // Normal
+    // =========================
+    // Create sample orders
+    // =========================
 
-    // Adding Tables (Member 3: Table list)
-    // Assuming Table constructor: Table(ID, Capacity)
-    Table* t1 = new Table(1);
-    t1->setCapacity(4);
-    myResto.Free_Tables.enqueue(t1, t1->getCapacity());
+    Order* o1 = new Order(1, TYPE_OD, 2, 50);
+    o1->setArrivalTime(0);
+    o1->setReadyTime(2);
+    o1->SetServiceStartTime(3);
+    o1->SetFinishTime(10);
 
-    // --- INPUT (Member 3: Pending Lists) ---
-    Order* o1 = new Order(75, TYPE_OV, 20, 100.0); // VIP
-    o1->setArrivalTime(1);
-    o1->SetDistance(10);
-    myResto.AddOrder(o1);
-
-    Order* o2 = new Order(6, TYPE_OT, 5, 30.0);   // Dine-in (Table)
+    Order* o2 = new Order(2, TYPE_OV, 3, 70);
     o2->setArrivalTime(1);
-    o2->SetEatingTime(10);
-    myResto.AddOrder(o2);
+    o2->setReadyTime(3);
+    o2->SetServiceStartTime(4);
+    o2->SetFinishTime(8);
 
-    // --- SIMULATION LOOP ---
-    for (int t = 1; t <= 5; t++) {
-        cout << "\nExecuting timestep " << t << "..." << endl;
+    Order* o3 = new Order(3, TYPE_OT, 1, 30);
+    o3->setArrivalTime(2);
+    o3->setReadyTime(4);
+    o3->SetServiceStartTime(5);
+    o3->SetFinishTime(12);
 
-        // 1. Assignment Logic (Member 2: Kitchen & Member 3: Table assignment)
-        myResto.AssignChefToOrder(t);
-        myResto.AssignOrdersToTables(t);
+    // =========================
+    // Push to finished stack
+    // =========================
+    r.getFinished().push(o1);
+    r.getFinished().push(o2);
+    r.getFinished().push(o3);
 
-        // 2. Movement Logic (Member 2: Cooking to Ready)
-        myResto.MoveToReady(t);
+    // update stats manually
+    r.TotalServedCount = 3;
 
-        // 3. Service & Stats Logic (Member 4: Finish Delivery/Dine-in)
-        myResto.UpdateServiceStatus(t);
-        myResto.CheckFinishedDineInOrders(t);
+    r.TotalWaitTime =
+        (o1->getServiceStartTime() - o1->getArrivalTime()) +
+        (o2->getServiceStartTime() - o2->getArrivalTime()) +
+        (o3->getServiceStartTime() - o3->getArrivalTime());
 
-        // 4. UI Output (Member 3: Program Interface display)
-        myUI.PrintAll(myResto, t);
+    r.TotalServiceTime =
+        (o1->getFinishTime() - o1->getServiceStartTime()) +
+        (o2->getFinishTime() - o2->getServiceStartTime()) +
+        (o3->getFinishTime() - o3->getServiceStartTime());
 
-        cout << "------------------------------------------" << endl;
-    }
+    // =========================
+    // Add one cancelled order
+    // =========================
+    Order* o4 = new Order(4, TYPE_OD, 2, 40);
+    r.Cancelled_orders.enqueue(o4);
 
-    // --- FINAL OUTPUT (Member 4: Statistics) ---
-    cout << "\nSimulation Finished. Generating Report..." << endl;
-    myResto.GenerateFinalReport();
+    // =========================
+    // Run Feature 13
+    // =========================
+    r.GenerateFinalReport();
 
     return 0;
 }

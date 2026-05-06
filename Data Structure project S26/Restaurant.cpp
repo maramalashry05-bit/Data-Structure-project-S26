@@ -548,11 +548,105 @@ bool Restaurant::IsFinished()
 
 void Restaurant::GenerateFinalReport()
 {
-    cout << "================ FINISHED ================" << endl;
-    cout << "Total Orders Served: " << TotalServedCount << endl;
+    cout << "========== FINISHED ORDERS ==========\n";
 
-    if (TotalServedCount > 0) {
-        cout << "Average Wait Time: " << (TotalWaitTime / TotalServedCount) << endl;
-        cout << "Average Service Time: " << (TotalServiceTime / TotalServedCount) << endl;
+    LinkedStack<Order*> tempStack = Finished_orders;
+    LinkedStack<Order*> sortedStack;
+
+    Order* o = nullptr;
+
+    // =========================
+    // STEP 1: SORT (DESC by Tf)
+    // =========================
+    while (!tempStack.isEmpty())
+    {
+        Order* maxOrder = nullptr;
+        LinkedStack<Order*> temp2;
+
+        while (tempStack.pop(o))
+        {
+            if (!maxOrder || o->getFinishTime() > maxOrder->getFinishTime())
+            {
+                if (maxOrder)
+                    temp2.push(maxOrder);
+                maxOrder = o;
+            }
+            else
+            {
+                temp2.push(o);
+            }
+        }
+
+        if (maxOrder)
+            sortedStack.push(maxOrder);
+
+        while (temp2.pop(o))
+            tempStack.push(o);
     }
+
+    // =========================
+    // STEP 2: FIX STACK ORDER
+    // =========================
+    LinkedStack<Order*> finalStack;
+
+    while (sortedStack.pop(o))
+        finalStack.push(o);
+
+    // =========================
+    // STEP 3: PRINT
+    // =========================
+    while (finalStack.pop(o))
+    {
+        int Tf = o->getFinishTime();
+        int Ta = o->getArrivalTime();
+        int Tr = o->getReadyTime();
+        int Ts = o->getServiceStartTime();
+
+        int Tw = Ts - Ta;
+        int Tserv = Tf - Ts;
+        int Tq = Tr - Ta;
+        int Tc = Ts - Tr;
+        int Ti = Tf - Tr;
+
+     
+        cout << Tf << " ";
+        cout << o->GetID() << " ";
+        cout << Tq << " ";
+        cout << Ta << " ";
+        cout << Tr << " ";
+        cout << Ts << " ";
+        cout << Ti << " ";
+        cout << Tc << " ";
+        cout << Tw << " ";
+        cout << Tserv << endl;
+    }
+    cout << "\n========== STATISTICS ==========\n";
+
+    int cancelled = Cancelled_orders.getCount();
+    int finished = TotalServedCount;
+    int totalOrders = finished + cancelled;
+
+    cout << "Total Orders: " << totalOrders << endl;
+    cout << "Finished Orders: " << finished << endl;
+    cout << "Cancelled Orders: " << cancelled << endl;
+
+    if (totalOrders > 0)
+    {
+        cout << "Finished %: " << (finished * 100.0 / totalOrders) << "%" << endl;
+        cout << "Cancelled %: " << (cancelled * 100.0 / totalOrders) << "%" << endl;
+    }
+
+    if (finished > 0)
+    {
+        cout << "Average Wait Time: " << (TotalWaitTime / finished) << endl;
+        cout << "Average Service Time: " << (TotalServiceTime / finished) << endl;
+    }
+    cout << "\n========== SCOOTERS ==========\n";
+
+    cout << "Free Scooters: " << Free_Scooters.getCount() << endl;
+    cout << "Maintenance Scooters: " << Maint_Scooters.getCount() << endl;
+    cout << "\n========== CHEFS ==========\n";
+
+    cout << "Normal Chefs: " << Free_CN.getCount() << endl;
+    cout << "Speedy Chefs: " << Free_CS.getCount() << endl;
 }

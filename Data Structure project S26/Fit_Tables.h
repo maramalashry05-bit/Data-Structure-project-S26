@@ -52,4 +52,17 @@ public:
 
         return found;
     }
+    void printTableDetails() const {
+        priNode<Table*>* current = head;
+        while (current) {
+            int p;
+            Table* t = current->getItem(p);
+            if (t) {
+                cout << "[" << t->getID()<< ", " << t->getCapacity() << ", " << t->getCapacity() << "]";
+            }
+            if (current->getNext()) cout << ", ";
+            current = current->getNext();
+        }
+        cout << endl;
+    }
 };

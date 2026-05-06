@@ -1,5 +1,9 @@
 #pragma once
 #include "priNode.h"
+#include <iostream>
+#include"Table.h"
+#include <type_traits>
+using namespace std;
 
 
 //This class impelements the priority queue as a sorted list (Linked List)
@@ -83,5 +87,67 @@ public:
             current = current->getNext();
         }
         cout << "NULL\n";
+    }
+
+    // Return the number of elements in the priority queue
+    int getCount() const {
+        int count = 0;
+        priNode<T>* current = head;
+        while (current) {
+            ++count;
+            current = current->getNext();
+        }
+        return count;
+    }
+
+private:
+    // Helper overloads to print ID for pointer and non-pointer item types
+    template<typename U = T>
+    static typename std::enable_if<std::is_pointer<U>::value, void>::type
+        PrintIDHelper(const U& item)
+    {
+        if (item)
+            cout << item->GetID() << " ";
+        else
+            cout << "(null) ";
+    }
+
+    template<typename U = T>
+    static typename std::enable_if<!std::is_pointer<U>::value, void>::type
+        PrintIDHelper(const U& item)
+    {
+        cout << item.GetID() << " ";
+    }
+
+public:
+    // Print only the IDs of items (assumes items expose GetID())
+    void printIDs() const {
+        priNode<T>* current = head;
+        while (current) {
+            int p;
+            T val = current->getItem(p);
+            PrintIDHelper(val);
+            current = current->getNext();
+        }
+        cout << endl;
+    }
+    void printIDsWithCompanions() const {                   // it print the Order Id and the resource ID 
+        priNode<T>* current = head;
+        while (current!=nullptr) {
+            int p;
+            T ord = current->getItem(p);
+            if (ord) {
+                cout << "[" << ord->GetID() << ", ";
+                // Logic to find if it has a Scooter or Table assigned
+                if (ord->getScooter()) cout << "S" << ord->getScooter()->GetID();
+                else if (ord->getTable()) cout << "T" << ord->getTable()->getID();
+                // If it's a cooking order, you might need to link to Chef ID 
+                // but usually, Order ID alone is the priority here.
+                cout << "]";
+            }
+            if (current->getNext()) cout << ", ";
+            current = current->getNext();
+        }
+        cout << endl;
     }
 };

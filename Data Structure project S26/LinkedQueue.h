@@ -93,6 +93,30 @@ public:
         }
         cout << "NULL\n";
     }
+    
+    int getCount() const {
+        int count = 0;
+        Node<T>* current = frontPtr;
+        while (current!=nullptr) {
+            count++;
+            current = current->getNext();
+        }
+        return count;
+    }
+
+   
+    void printIDs() const {
+        Node<T>* current = frontPtr;
+        while (current!=nullptr) {
+
+            if (current->getItem())
+                cout << current->getItem()->GetID();
+
+            if (current->getNext()) cout << ", ";
+            current = current->getNext();
+        }
+        cout << endl;
+    }
 
     ~LinkedQueue()
     {

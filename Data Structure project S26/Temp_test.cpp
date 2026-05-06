@@ -8,6 +8,7 @@ using namespace std;
 #include "Chef.h"
 #include <cstdlib>
 #include <ctime>
+#include "Table.h"
 
 //int main()
 //{
@@ -226,54 +227,118 @@ using namespace std;
 
 
 // Test for Member 4 
+//#include <iostream>
+//#include "Restaurant.h"
+//#include "Order.h"
+//
+//using namespace std;
+//
+//int main() {
+//    Restaurant r;
+//
+//    Order* o1 = new Order(1, TYPE_OD, 2, 100);
+//    o1->setArrivalTime(0);
+//    o1->SetServiceStartTime(1);
+//    o1->SetFinishTime(5);
+//
+//    Scooter* s1 = new Scooter(1, 10, false);
+//    o1->setScooter(s1);
+//
+//    r.InServ_Orders.enqueue(o1, -o1->getFinishTime());
+//    Order* o2 = new Order(2, TYPE_OD, 1, 50);
+//    o2->setArrivalTime(0);
+//    o2->SetServiceStartTime(2);
+//    o2->SetFinishTime(8);
+//
+//    Scooter* s2 = new Scooter(2, 5, false);
+//    o2->setScooter(s2);
+//
+//    r.InServ_Orders.enqueue(o2, -o2->getFinishTime());
+//    cout << "Before:\n";
+//    cout << "Finished = " << r.TotalServedCount << endl;
+//    r.UpdateServiceStatus(6);
+//
+//    cout << "\nAt time 6:\n";
+//    cout << "Finished = " << r.TotalServedCount << endl;
+//    r.PrintFinished();
+//    r.UpdateServiceStatus(9);
+//
+//    cout << "\nAt time 9:\n";
+//    cout << "Finished = " << r.TotalServedCount << endl;
+//    r.PrintFinished();
+//
+//    // 4. Generate Output (Feature 13)
+//    cout << "Generating Final Report File..." << endl;
+//    r.GenerateFinalReport();
+//
+//    cout << "\n--- Test Complete ---" << endl;
+//    cout << "Check 'Simulation_Report.txt' for the results." << endl;
+//
+//    return 0;
+//}
+// main for member 1 
+
+
 #include <iostream>
 #include "Restaurant.h"
+#include "UI.h"
+#include "Chef.h"
 #include "Order.h"
 
 using namespace std;
 
 int main() {
-    /*Restaurant r;
+    Restaurant myResto;
+    UI myUI;
 
-    Order* o1 = new Order(1, TYPE_OD, 2, 100);
-    o1->setArrivalTime(0);
-    o1->SetServiceStartTime(1);
-    o1->SetFinishTime(5);
+    cout << "=== Integrated Test: Members 2, 3, & 4 ===" << endl;
 
-    Scooter* s1 = new Scooter(1, 10, false);
-    o1->setScooter(s1);
+    // --- SETUP (Member 3: List Initializations) ---
+    // Adding Chefs (Member 2: Resource setup)
+    myResto.AddChef(new Chef(1, CS, 10)); // Speedy
+    myResto.AddChef(new Chef(2, CN, 5));  // Normal
 
-    r.InServ_Orders.enqueue(o1, -o1->getFinishTime());
-    Order* o2 = new Order(2, TYPE_OD, 1, 50);
-    o2->setArrivalTime(0);
-    o2->SetServiceStartTime(2);
-    o2->SetFinishTime(8);
+    // Adding Tables (Member 3: Table list)
+    // Assuming Table constructor: Table(ID, Capacity)
+    Table* t1 = new Table(1);
+    t1->setCapacity(4);
+    myResto.Free_Tables.enqueue(t1, t1->getCapacity());
 
-    Scooter* s2 = new Scooter(2, 5, false);
-    o2->setScooter(s2);
+    // --- INPUT (Member 3: Pending Lists) ---
+    Order* o1 = new Order(75, TYPE_OV, 20, 100.0); // VIP
+    o1->setArrivalTime(1);
+    o1->SetDistance(10);
+    myResto.AddOrder(o1);
 
-    r.InServ_Orders.enqueue(o2, -o2->getFinishTime());
-    cout << "Before:\n";
-    cout << "Finished = " << r.TotalServedCount << endl;
-    r.UpdateServiceStatus(6);
+    Order* o2 = new Order(6, TYPE_OT, 5, 30.0);   // Dine-in (Table)
+    o2->setArrivalTime(1);
+    o2->SetEatingTime(10);
+    myResto.AddOrder(o2);
 
-    cout << "\nAt time 6:\n";
-    cout << "Finished = " << r.TotalServedCount << endl;
-    r.PrintFinished();
-    r.UpdateServiceStatus(9);
+    // --- SIMULATION LOOP ---
+    for (int t = 1; t <= 5; t++) {
+        cout << "\nExecuting timestep " << t << "..." << endl;
 
-    cout << "\nAt time 9:\n";
-    cout << "Finished = " << r.TotalServedCount << endl;
-    r.PrintFinished();*/
+        // 1. Assignment Logic (Member 2: Kitchen & Member 3: Table assignment)
+        myResto.AssignChefToOrder(t);
+        myResto.AssignOrdersToTables(t);
 
-    // 4. Generate Output (Feature 13)
-   /* cout << "Generating Final Report File..." << endl;
+        // 2. Movement Logic (Member 2: Cooking to Ready)
+        myResto.MoveToReady(t);
+
+        // 3. Service & Stats Logic (Member 4: Finish Delivery/Dine-in)
+        myResto.UpdateServiceStatus(t);
+        myResto.CheckFinishedDineInOrders(t);
+
+        // 4. UI Output (Member 3: Program Interface display)
+        myUI.PrintAll(myResto, t);
+
+        cout << "------------------------------------------" << endl;
+    }
+
+    // --- FINAL OUTPUT (Member 4: Statistics) ---
+    cout << "\nSimulation Finished. Generating Report..." << endl;
     myResto.GenerateFinalReport();
-
-    cout << "\n--- Test Complete ---" << endl;
-    cout << "Check 'Simulation_Report.txt' for the results." << endl;*/
 
     return 0;
 }
-
-

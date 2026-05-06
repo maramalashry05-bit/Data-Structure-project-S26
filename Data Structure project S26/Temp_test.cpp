@@ -406,6 +406,8 @@ using namespace std;
 //
 //    return 0;
 //}
+
+
 int main() {
     Restaurant* pRest = new Restaurant();
     UI* pUI = new UI();
@@ -414,19 +416,33 @@ int main() {
     cout << "Enter input file name: ";
     cin >> fileName;
 
-    // --- THIS IS THE FIX ---
-    cin.ignore(100, '\n'); // Clears the "Enter" key from memory
-    // -----------------------
+    // --- NEW: Ask for Mode ---
+    int modeInput;
+    cout << "Select Mode (1 for Interactive, 2 for Silent): ";
+    cin >> modeInput;
+    PROG_MODE mode = (modeInput == 1) ? INTERACTIVE : SILENT;
+
+    // Clears the "Enter" key from memory so cin.get() works later
+    cin.ignore(100, '\n');
 
     pRest->LoadInputFile(fileName);
 
-    // Let's verify right here before starting
-    // If this says 0, your 'Actions' queue variable name might be different 
-    // from the one 'IsFinished' is checking.
-    cout << "Press Enter to start simulation..." << endl;
-    cin.get();
+    // Handle Silent Mode Initial Print
+    if (mode == SILENT) {
+        cout << "Simulation Starts in Silent mode ..." << endl;
+    }
+    else {
+        cout << "Simulation Starts in Interactive mode. Press Enter to begin..." << endl;
+        cin.get();
+    }
 
-    pRest->ExecuteSimulation(pUI);
+    // Pass the mode to your simulation executor
+    pRest->ExecuteSimulation(pUI, mode);
+
+    // Handle Silent Mode Final Print
+    if (mode == SILENT) {
+        cout << "Simulation ends, Output file created" << endl;
+    }
 
     delete pRest;
     delete pUI;

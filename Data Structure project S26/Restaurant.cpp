@@ -651,40 +651,109 @@ void Restaurant::GenerateFinalReport()
     cout << "Speedy Chefs: " << Free_CS.getCount() << endl;
 }
 
-void Restaurant::LoadInputFile(string filename) {
+void Restaurant::LoadInputFile(const string& filename) {
     ifstream inFile(filename);
 
     if (!inFile.is_open()) {
-        // DEBUG 1: Did the file even open?
-        cout << "[DEBUG] Error: Could not open file: " << filename << endl;
-        cout << "[DEBUG] Make sure " << filename << " is in the project folder." << endl;
+        cout << "Error: Could not open file " << filename << endl;
         return;
     }
 
-    cout << "[DEBUG] File opened successfully! Starting to read actions..." << endl;
+    // 1. Read Chefs Information
+    int cn_count, cs_count;
+    inFile >> cn_count >> cs_count;
 
-    char actionType;
-    int time, id, typeInt, size, money;
-    int count = 0;
+    int cn_speed, cs_speed;
+    inFile >> cn_speed >> cs_speed;
 
-    while (inFile >> time >> actionType) {
-        if (actionType == 'R') {
-            inFile >> id >> typeInt >> size >> money;
-            ORD_TYPE oType = static_cast<ORD_TYPE>(typeInt);
-            Action* pAct = new ArrivalAction(time, id, oType, size, money);
-            AddAction(pAct);
-            count++;
-        }
-        else if (actionType == 'X') {
-            inFile >> id;
-            Action* pAct = new CancelAction(time, id);
-            AddAction(pAct);
-            count++;
-        }
+    int chefID = 1;
+    for (int i = 0; i < cn_count; i++) {
+        // Assuming CN is an enum value for Normal Chef from CHEF_TYPE
+        Free_CN.enqueue(new Chef(chefID++, CN, cn_speed));
+    }
+    for (int i = 0; i < cs_count; i++) {
+        // Assuming CS is an enum value for Special Chef from CHEF_TYPE
+        Free_CS.enqueue(new Chef(chefID++, CS, cs_speed));
     }
 
-    // DEBUG 2: How many actions did we actually load?
-    cout << "[DEBUG] Finished loading. Total actions in queue: " << count << endl;
+    // 2. Read Scooters Information
+    int s_count, s_speed;
+    inFile >> s_count >> s_speed;
+
+    int main_ords, main_dur;
+    inFile >> main_ords >> main_dur;
+    // You should store main_ords and main_dur as member variables in your class 
+    // to use them later for maintenance logic (e.g., ScooterMaintenanceTrips = main_ords)
+
+    int scooterID = 1;
+    for (int i = 0; i < s_count; i++) {
+        // Assuming false for "isFast" since it's not specified in the input file
+        // Note: If Free_Scooters is a priQueue, you might need to enqueue with a priority (e.g., speed)
+        // Free_Scooters.enqueue(new Scooter(scooterID++, s_speed, false), s_speed);
+        Free_Scooters.enqueue(new Scooter(scooterID++, s_speed, false), s_speed);
+    }
+
+    // 3. Read Tables Information
+    int total_tables;
+    inFile >> total_tables;
+
+    int tables_read = 0;
+    int tableID = 1;
+    while (tables_read < total_tables) {
+        int table_count, capacity;
+        inFile >> table_count >> capacity;
+
+        for (int i = 0; i < table_count; i++) {
+            // Adjust this line based on how your 'Fit_Tables' structure inserts new tables
+            // Free_Tables.Insert(new Table(tableID++, capacity)); 
+        }
+        tables_read += table_count;
+    }
+
+    // 4. Read Threshold
+    int overwait_threshold;
+    inFile >> overwait_threshold;
+    // Store overwait_threshold in a member variable
+
+    // 5. Read Actions
+    int num_actions;
+    inFile >> num_actions;
+
+    for (int i = 0; i < num_actions; i++) {
+        char action_letter;
+        inFile >> action_letter;
+
+        if (action_letter == 'Q') {
+            string typ;
+            int tq, id, size;
+            double price;
+            inFile >> typ >> tq >> id >> size >> price;
+
+            if (typ == "ODG" || typ == "ODN") {
+                int seats, duration;
+                char canShare;
+                inFile >> seats >> duration >> canShare;
+                bool shareable = (canShare == 'Y' || canShare == 'y');
+
+                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price, seats, duration, shareable));
+            }
+            else if (typ == "OVC" || typ == "OVG" || typ == "OVN") {
+                double distance;
+                inFile >> distance;
+
+                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price, distance));
+            }
+            else if (typ == "OT") {
+                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price));
+            }
+        }
+        else if (action_letter == 'X') {
+            int tcancel, id;
+            inFile >> tcancel >> id;
+
+            // Example: Actions.enqueue(new CancelAction(tcancel, id));
+        }
+    }
 
     inFile.close();
 }
@@ -692,31 +761,34 @@ void Restaurant::LoadInputFile(string filename) {
 
 
   
-void Restaurant::ExecuteSimulation(UI* pUI) {
-    int currentTime = 1; 
+void Restaurant::ExecuteSimulation(UI* pUI, PROG_MODE mode) {
+    int currentTime = 1;
 
     while (!IsFinished()) {
-
         ExecuteActions(currentTime);
 
-        UpdateServiceStatus(currentTime);   
-        MoveScooterToMaintenance();         
-        UpdateMaintenanceList(currentTime); 
-        MoveToReady(currentTime);           
+        UpdateServiceStatus(currentTime);
+        MoveScooterToMaintenance();
+        UpdateMaintenanceList(currentTime);
+        MoveToReady(currentTime);
 
-        AssignChefToOrder(currentTime);     
-        AssignOrdersToTables(currentTime);  
-
+        AssignChefToOrder(currentTime);
+        AssignOrdersToTables(currentTime);
         AssignOrdersToScooters(currentTime);
 
         HandleScooterBreakdowns(currentTime);
 
-        pUI->PrintAll(*this, currentTime);
-        cin.get();
-        currentTime++; 
-        
+        // --- THE FIX: Only print and wait if in Interactive Mode ---
+        if (mode == INTERACTIVE) {
+            pUI->PrintAll(*this, currentTime);
+            cin.get(); // Wait for user to press Enter to move to next timestep
+        }
+
+        currentTime++;
     }
-    
+
+    // This will always run, ensuring your output file is created 
+    // regardless of whether the simulation was interactive or silent.
     GenerateFinalReport();
 }
 void Restaurant::HandleScooterBreakdowns(int currentTime) {

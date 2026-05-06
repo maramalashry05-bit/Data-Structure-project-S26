@@ -15,6 +15,10 @@
 #include"Fit_Tables.h"
 #include "UI.h"
 #include "PromoteAction.h"
+enum PROG_MODE {
+    INTERACTIVE,
+    SILENT
+};
 class Restaurant
 {
     friend class UI;
@@ -73,7 +77,7 @@ public:
      void AssignChefToOrder(int currentTime);     // feature 8 
    void UpdateMaintenanceList(int currentTime); // feature 5
    void HandleComboAssignment(Order* comboOrd, int currentTime); // bonus
-   void LoadInputFile(string filename);
-   void ExecuteSimulation(UI* pUI);
+   void LoadInputFile(const string& filename);
+   void ExecuteSimulation(UI* pUI, PROG_MODE mode);
    void HandleScooterBreakdowns(int currentTime);
 };

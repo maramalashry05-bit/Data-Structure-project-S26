@@ -34,7 +34,7 @@ void Scooter::incrementTrips() {
 void Scooter::resetTrips() {
     TripsDone = 0;
 }
-void Scooter::Print() const
+void Scooter::Print() const 
 {
     cout << "Scooter ID: " << ID << endl;
 }

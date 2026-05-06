@@ -232,6 +232,7 @@ void Restaurant::AssignOrdersToScooters(int currentTime)
         readyDeliveryOrder->setScooter(availableScooter);
         availableScooter->incrementTrips();
         availableScooter->SetAvailable(false);
+        readyDeliveryOrder->SetServiceStartTime(currentTime);
 
         // Calculate delivery duration
         int deliveryDuration = readyDeliveryOrder->GetDistance() / availableScooter->GetSpeed();
@@ -448,30 +449,44 @@ void Restaurant::UpdateServiceStatus(int currentTime)
     Order* pOrd = nullptr;
     int priority;
 
-    // Check In-Service Priority Queue (Orders currently with scooters)
-    while (InServ_Orders.peek(pOrd, priority)) {
-        // If finish time (arrival at customer) is reached
-        if (currentTime >= pOrd->getFinishTime()) {
-            InServ_Orders.dequeue(pOrd, priority);
+    priQueue<Order*> tempQueue;
+
+    while (InServ_Orders.dequeue(pOrd, priority))
+    {
+        if (currentTime >= pOrd->getFinishTime())
+        {
+            // 1. Move to finished
             Finished_orders.push(pOrd);
 
+            // 2. Update statistics
             TotalServedCount++;
-            TotalWaitTime += (pOrd->getServiceStartTime() - pOrd->getArrivalTime());
-            TotalServiceTime += (pOrd->getFinishTime() - pOrd->getServiceStartTime());
 
-            // Handle Scooter return logic (Member 2/Member 4 interface)
+            int waitTime = pOrd->getServiceStartTime() - pOrd->getArrivalTime();
+            int serviceTime = pOrd->getFinishTime() - pOrd->getServiceStartTime();
+
+            TotalWaitTime += waitTime;
+            TotalServiceTime += serviceTime;
+
+            // 3. Handle scooter return
             Scooter* s = pOrd->getScooter();
-            if (s != nullptr) {
-                // Scooters take time to return (simplified here as instant)
+            if (s != nullptr)
+            {
                 Back_Scooters.enqueue(s, s->GetSpeed());
             }
         }
-        else {
-            break;
+        else
+        {
+            // ·”Â „Œ·’‘ ? —Ã⁄Â  «‰Ì
+            tempQueue.enqueue(pOrd, priority);
         }
     }
-}
-// =========================================================================
+
+    // restore queue
+    while (tempQueue.dequeue(pOrd, priority))
+    {
+        InServ_Orders.enqueue(pOrd, priority);
+    }
+}// =========================================================================
 // Action Scheduling & Engine
 // =========================================================================
 

@@ -233,31 +233,38 @@ using namespace std;
 using namespace std;
 
 int main() {
-    cout << "--- Member 4: Outputs & Cancellations Test ---" << endl;
-    Restaurant myResto;
+    /*Restaurant r;
 
-    // 1. Setup Data
-    Order* ord1 = new Order(201, TYPE_OD, 10, 50.0);
-    ord1->setArrivalTime(1);
-    myResto.AddOrder(ord1);
+    Order* o1 = new Order(1, TYPE_OD, 2, 100);
+    o1->setArrivalTime(0);
+    o1->SetServiceStartTime(1);
+    o1->SetFinishTime(5);
 
-    Order* ordToCancel = new Order(202, TYPE_OD, 15, 60.0);
-    myResto.AddOrder(ordToCancel);
+    Scooter* s1 = new Scooter(1, 10, false);
+    o1->setScooter(s1);
 
-    // 2. Test Cancellation (Feature 4)
-    cout << "Attempting to cancel Order 202..." << endl;
-    myResto.CancelOrder(202);
+    r.InServ_Orders.enqueue(o1, -o1->getFinishTime());
+    Order* o2 = new Order(2, TYPE_OD, 1, 50);
+    o2->setArrivalTime(0);
+    o2->SetServiceStartTime(2);
+    o2->SetFinishTime(8);
 
-    // 3. Test Statistics (Feature 6 & 13)
-    // Manually simulating a finished order to check stat calculation
-    ord1->SetServiceStartTime(2); // Wait = 1
-    ord1->SetFinishTime(5);       // Service = 3
+    Scooter* s2 = new Scooter(2, 5, false);
+    o2->setScooter(s2);
 
-    // We manually move it to finished for this test
-    myResto.getFinished().push(ord1);
-    myResto.TotalServedCount = 1;
-    myResto.TotalWaitTime = 1;
-    myResto.TotalServiceTime = 3;
+    r.InServ_Orders.enqueue(o2, -o2->getFinishTime());
+    cout << "Before:\n";
+    cout << "Finished = " << r.TotalServedCount << endl;
+    r.UpdateServiceStatus(6);
+
+    cout << "\nAt time 6:\n";
+    cout << "Finished = " << r.TotalServedCount << endl;
+    r.PrintFinished();
+    r.UpdateServiceStatus(9);
+
+    cout << "\nAt time 9:\n";
+    cout << "Finished = " << r.TotalServedCount << endl;
+    r.PrintFinished();*/
 
     // 4. Generate Output (Feature 13)
    /* cout << "Generating Final Report File..." << endl;

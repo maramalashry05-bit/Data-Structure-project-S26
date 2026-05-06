@@ -668,11 +668,9 @@ void Restaurant::LoadInputFile(const string& filename) {
 
     int chefID = 1;
     for (int i = 0; i < cn_count; i++) {
-        // Assuming CN is an enum value for Normal Chef from CHEF_TYPE
         Free_CN.enqueue(new Chef(chefID++, CN, cn_speed));
     }
     for (int i = 0; i < cs_count; i++) {
-        // Assuming CS is an enum value for Special Chef from CHEF_TYPE
         Free_CS.enqueue(new Chef(chefID++, CS, cs_speed));
     }
 
@@ -682,14 +680,9 @@ void Restaurant::LoadInputFile(const string& filename) {
 
     int main_ords, main_dur;
     inFile >> main_ords >> main_dur;
-    // You should store main_ords and main_dur as member variables in your class 
-    // to use them later for maintenance logic (e.g., ScooterMaintenanceTrips = main_ords)
 
     int scooterID = 1;
     for (int i = 0; i < s_count; i++) {
-        // Assuming false for "isFast" since it's not specified in the input file
-        // Note: If Free_Scooters is a priQueue, you might need to enqueue with a priority (e.g., speed)
-        // Free_Scooters.enqueue(new Scooter(scooterID++, s_speed, false), s_speed);
         Free_Scooters.enqueue(new Scooter(scooterID++, s_speed, false), s_speed);
     }
 
@@ -704,7 +697,7 @@ void Restaurant::LoadInputFile(const string& filename) {
         inFile >> table_count >> capacity;
 
         for (int i = 0; i < table_count; i++) {
-            // Adjust this line based on how your 'Fit_Tables' structure inserts new tables
+            // NOTE: Make sure this line is uncommented and matches your table structure!
             // Free_Tables.Insert(new Table(tableID++, capacity)); 
         }
         tables_read += table_count;
@@ -713,7 +706,6 @@ void Restaurant::LoadInputFile(const string& filename) {
     // 4. Read Threshold
     int overwait_threshold;
     inFile >> overwait_threshold;
-    // Store overwait_threshold in a member variable
 
     // 5. Read Actions
     int num_actions;
@@ -729,29 +721,40 @@ void Restaurant::LoadInputFile(const string& filename) {
             double price;
             inFile >> typ >> tq >> id >> size >> price;
 
+            // 1. Convert the string 'typ' from the file into your EXACT enum
+            ORD_TYPE oType;
+            if (typ == "ODG" || typ == "ODN") {
+                oType = TYPE_OD; // Dine-in
+            }
+            else if (typ == "OVC" || typ == "OVG" || typ == "OVN") {
+                oType = TYPE_OV; // Delivery
+            }
+            else {
+                oType = TYPE_OT; // Takeaway (OT)
+            }
+
+            // 2. Read the extra data from the file, but only pass the 5 variables your constructor allows
             if (typ == "ODG" || typ == "ODN") {
                 int seats, duration;
                 char canShare;
                 inFile >> seats >> duration >> canShare;
-                bool shareable = (canShare == 'Y' || canShare == 'y');
+                // bool shareable = (canShare == 'Y' || canShare == 'y'); // Stored in case you need it later
 
-                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price, seats, duration, shareable));
+                // Enqueue using your 5-argument constructor
+                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
             }
             else if (typ == "OVC" || typ == "OVG" || typ == "OVN") {
                 double distance;
                 inFile >> distance;
 
-                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price, distance));
+                // Enqueue using your 5-argument constructor
+                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
             }
             else if (typ == "OT") {
-                // Example: Actions.enqueue(new RequestAction(typ, tq, id, size, price));
-            }
-        }
-        else if (action_letter == 'X') {
-            int tcancel, id;
-            inFile >> tcancel >> id;
 
-            // Example: Actions.enqueue(new CancelAction(tcancel, id));
+                // Enqueue using your 5-argument constructor
+                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
+            }
         }
     }
 

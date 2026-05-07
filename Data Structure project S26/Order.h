@@ -38,6 +38,7 @@ private:
     int ReadyTime;
     Chef* myChef;
     bool isUrgent; // Flag to indicate overwait threshold reached
+    int sizeA, sizeB;
 
 public:
     Order();
@@ -74,5 +75,7 @@ public:
     int getServiceStartTime() const;
     int getFinishTime() const;
     int GetNumSeats() const;
+    int GetSizeA()const; 
+    int GetSizeB()const;
 };  
 

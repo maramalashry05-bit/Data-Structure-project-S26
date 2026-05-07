@@ -59,7 +59,7 @@ public:
     void AutoPromoteOrders(int currentTime);
 
     void MoveToReady(int currentTime);
-    void FinishOrder();
+    void FinishOrder(int currentTime);
 
     void MoveScooterToMaintenance();
 

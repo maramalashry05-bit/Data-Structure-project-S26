@@ -56,7 +56,7 @@ void Restaurant::AddOrder(Order* o)
 }
 void Restaurant::CancelOrder(int id)
 {
-    // 1. Check special cancellation container if it exists
+
     if (Pend_OVC.CancelOrder(id)) {
         cout << "Order " << id << " cancelled successfully." << endl;
         return;
@@ -66,21 +66,16 @@ void Restaurant::CancelOrder(int id)
     LinkedQueue<Order*> tempQueue;
     bool found = false;
 
-    // 2. Manual search in the Normal Delivery Queue (PEND_ODN)
-    // Note: We use PEND_ODN to match your Restaurant.h definition
     while (PEND_ODN.dequeue(pOrd)) {
         if (pOrd != nullptr && pOrd->GetID() == id) {
             found = true;
-            Cancelled_orders.enqueue(pOrd); // Move to cancelled list
-            // We don't 'break' here because we need to move the rest of the 
-            // orders into tempQueue to maintain their original order.
+            Cancelled_orders.enqueue(pOrd); 
         }
         else {
             tempQueue.enqueue(pOrd);
         }
     }
 
-    // 3. Restore the original queue from tempQueue
     while (tempQueue.dequeue(pOrd)) {
         PEND_ODN.enqueue(pOrd);
     }
@@ -98,47 +93,36 @@ void Restaurant::PromoteOrder(int orderId, double extraMoney)
     Order* pOrd = nullptr;
     bool found = false;
 
-    // 1. Search for the order in the Pending Normal Delivery Queue (PEND_OVN)
-    // Note: Use your exact queue name here if it's different!
     while (PEND_OVN.dequeue(pOrd))
     {
         if (pOrd->GetID() == orderId)
         {
             found = true;
 
-            // 2. Update the order's total money
-            // (Make sure your Order class has GetMoney/SetMoney or equivalent Price getters/setters)
             double newTotalMoney = pOrd->getMoney() + extraMoney;
             pOrd->setMoney(newTotalMoney);
 
-            // 3. Calculate the new VIP Priority
-            // A standard priority equation: (Money / Distance) * Size
             int dist = pOrd->GetDistance();
             int size = pOrd->GetSize();
             int priority = 0;
 
             if (dist > 0) {
-                // Higher money & size = higher priority. Longer distance = lower priority.
                 priority = (newTotalMoney / dist) * size;
             }
             else {
-                // Fallback in case distance is 0 to avoid division by zero
                 priority = newTotalMoney * size;
             }
 
              pOrd->setType(TYPE_OVG); 
 
-            // 4. Move the order to the VIP Priority Queue (PEND_OVG)
             PEND_OVG.enqueue(pOrd, priority);
         }
         else
         {
-            // Not the order we are looking for, put it in the temporary queue
             tempQueue.enqueue(pOrd);
         }
     }
 
-    // 5. Restore all the other normal orders back to their original queue
     while (tempQueue.dequeue(pOrd))
     {
         PEND_OVN.enqueue(pOrd);
@@ -152,19 +136,12 @@ void Restaurant::AutoPromoteOrders(int currentTime)
     LinkedQueue<Order*> tempQueue;
     Order* pOrd = nullptr;
 
-    // Go through all pending Normal Delivery orders (Corrected to PEND_OVN!)
     while (PEND_OVN.dequeue(pOrd))
     {
-        // Calculate how long this order has been waiting
         int waitTime = currentTime - pOrd->getArrivalTime();
 
-        // Check if it exceeds the restaurant's auto-promote policy
         if (waitTime > overwait_threshold)
         {
-            // --- AUTO-PROMOTE LOGIC ---
-
-            // Calculate priority for the VIP queue 
-            // (Same formula as Promote, but NO extra money is added!)
             int dist = pOrd->GetDistance();
             int priority;
 
@@ -175,21 +152,16 @@ void Restaurant::AutoPromoteOrders(int currentTime)
                 priority = (pOrd->getEatingTime() + pOrd->GetSize());
             }
 
-            // Update the order's type to the specific VIP Delivery enum
-            // (Make sure to use 'SetType' or 'setType' depending on exactly how you wrote it in Order.h)
             pOrd->setType(TYPE_OVG);
 
-            // Move the order to the VIP Priority Queue
             PEND_OVG.enqueue(pOrd, priority);
         }
         else
         {
-            // Has not waited long enough, put it in the temporary queue
             tempQueue.enqueue(pOrd);
         }
     }
 
-    // Restore the pending normal delivery orders that were NOT promoted
     while (tempQueue.dequeue(pOrd))
     {
         PEND_OVN.enqueue(pOrd);
@@ -206,10 +178,8 @@ void Restaurant::MoveToReady(int currentTime)
     Order* pOrd = nullptr;
     int finishTimePri;
 
-    // peek looks at the order closest to finishing
     while (Cooking_Orders.peek(pOrd, finishTimePri)) {
 
-        // If finish time is reached or passed
         if (currentTime >= pOrd->getFinishTime()) {
 
             // 1. Extract from the cooking queue
@@ -239,12 +209,11 @@ void Restaurant::MoveToReady(int currentTime)
                 break;
             }
 
-            // --- 4. RETURN THE CHEF TO THEIR FREE QUEUE ---
-            Chef* pChef = pOrd->getChef(); // Get the specific chef who cooked this order
+            //4. RETURN THE CHEF TO THEIR FREE QUEUE ---
+            Chef* pChef = pOrd->getChef(); 
 
             if (pChef != nullptr) {
-                // Assuming your Chef class has a GetType() that returns a char or enum
-                // Adjust 'N' and 'S' to match exactly how you defined your chef types!
+               
                 if (pChef->GetType() == 'N') {
                     Free_CN.enqueue(pChef);
                 }
@@ -252,28 +221,23 @@ void Restaurant::MoveToReady(int currentTime)
                     Free_CS.enqueue(pChef);
                 }
 
-                // Optional but highly recommended: un-link the chef so the order knows it's no longer being cooked
                 pOrd->setChef(nullptr);
             }
 
         }
         else {
-            // Since the priority queue is sorted by finish time, 
-            // if the top one isn't done cooking, nobody else is either!
             break;
         }
     }
 }
 
-void Restaurant::FinishOrder()
+void Restaurant::FinishOrder(int currentTime)
 {
     Order* finishedOrder = nullptr;
     int priority;
 
-    // Move completed orders from InServ_Orders to the finished list
-    // (Requires checking if current time >= service finish time)
-    // Example conceptual loop:
-    /*
+   
+    
     while (InServ_Orders.peek(finishedOrder, priority)) {
         if (currentTime >= finishedOrder->getFinishTime()) {
             InServ_Orders.dequeue(finishedOrder, priority);
@@ -287,7 +251,7 @@ void Restaurant::FinishOrder()
             break;
         }
     }
-    */
+    
 }
 
 void Restaurant::MoveScooterToMaintenance()
@@ -334,13 +298,11 @@ void Restaurant::AssignChefToOrder(int currentTime)
     Chef* pChef = nullptr;
     int priority;
 
-    // --- 1. HANDLE GRILLED/SPECIALTY ORDERS FIRST ---
-    // Try to assign OVG (VIP Grilled) and ODG (Dine-in Grilled) to CS Chefs
     while (!Free_CS.isEmpty()) {
         if (PEND_OVG.dequeue(pOrd, priority)) {
             Free_CS.dequeue(pChef);
             pOrd->setStatus(COOK);
-            pOrd->setChef(pChef); // Link chef to order
+            pOrd->setChef(pChef); 
             pOrd->SetServiceStartTime(currentTime);
             pChef->AssignOrder(pOrd, currentTime);
             Cooking_Orders.enqueue(pOrd, -pOrd->getFinishTime());
@@ -368,7 +330,7 @@ void Restaurant::AssignChefToOrder(int currentTime)
         else if (PEND_ODN.dequeue(pOrd)) {
             Free_CN.dequeue(pChef);
         }
-        else break; // No more orders for Normal Chefs
+        else break; 
 
         pOrd->setStatus(COOK);
         pOrd->setChef(pChef);
@@ -440,7 +402,6 @@ void Restaurant::AssignOrdersToTables(int currentTime)
         } 
         else
         {
-            // No tables available that fit this order's size. Stop trying.
             break;
         }
     }
@@ -466,18 +427,18 @@ void Restaurant::CheckFinishedDineInOrders(int currentTime)
             Table* assignedTable = finishedOrder->getTable();
             if (assignedTable != nullptr)
             {
-                // Put table back into Free_Tables (Capacity is its priority)
+                
                 assignedTable->SetAvailable(true);
                 Free_Tables.enqueue(assignedTable, assignedTable->getCapacity());
-                // Remove the table from the busy list
+                
                 Table* tempT = nullptr;
-                int tempPri = 0; // Variable to hold the priority
-                priQueue<Table*> tempBusy; // Assuming tempBusy is also a priQueue
+                int tempPri = 0;
+                priQueue<Table*> tempBusy; 
 
-                // Pass BOTH the table pointer and the priority integer
+               
                 while (Busy_No_Sharable.dequeue(tempT, tempPri)) {
                     if (tempT != assignedTable) {
-                        // Keep the ones that are STILL busy, using their original priority
+                       
                         tempBusy.enqueue(tempT, tempPri);
                     }
                 }
@@ -558,20 +519,51 @@ void Restaurant::UpdateMaintenanceList(int currentTime)
 }
 // Logic for handling a Combo in the Kitchen
 void Restaurant::HandleComboAssignment(Order* comboOrd, int currentTime) {
-    // If an order is a Combo, it needs multiple chefs
-    // This logic ensures parts are assigned to different chefs 
-    // but the order only moves to READY when all parts == 0.
+ 
 
-    int parts = 2; // Example: Combo has 2 parts
-    for (int i = 0; i < parts; i++) {
-        Chef* pChef = nullptr;
-        if (Free_CN.dequeue(pChef)) {
-            // Assign sub-part to chef
-            // Logic to track that this specific Chef is working on Part X of Order ID
+    Chef* chefA = nullptr;
+    Chef* chefB = nullptr;
+
+    
+    // We use peek first to ensure we don't dequeue unless BOTH are ready
+    if (Free_CS.peek(chefA) && Free_CN.peek(chefB)) {
+
+      
+        Free_CS.dequeue(chefA);
+        Free_CN.dequeue(chefB);
+        comboOrd->SetServiceStartTime(currentTime);
+
+       
+        int timeA = comboOrd->GetSizeA() / chefA->GetSpeed();
+        int timeB = comboOrd->GetSizeB() / chefB->GetSpeed();
+
+      
+        int totalCookTime;
+
+        if (timeA > timeB) {
+          
+            totalCookTime = timeA;
         }
-    }
-}
+        else {
+            
+            totalCookTime = timeB;
+        }
 
+        
+        int finalFinishTime = currentTime + totalCookTime;
+
+        comboOrd->SetFinishTime(finalFinishTime);
+       
+        Cooking_Orders.enqueue(comboOrd, -finalFinishTime);
+        chefA->AssignOrder(comboOrd, currentTime);
+        chefB->AssignOrder(comboOrd, currentTime);
+
+        cout << ">> [COMBO] Order " << comboOrd->GetID()
+            << " assigned to Chef " << chefA->GetID()
+            << " and Chef " << chefB->GetID() << endl;
+    }
+    
+}
 
 void Restaurant::UpdateServiceStatus(int currentTime)
 {
@@ -785,10 +777,12 @@ void Restaurant::GenerateFinalReport()
 
     cout << "Normal Chefs: " << Free_CN.getCount() << endl;
     cout << "Speedy Chefs: " << Free_CS.getCount() << endl;
+
 }
 
 void Restaurant::LoadInputFile(const string& filename) {
     ifstream inFile(filename);
+    ifstream inputFile("testcase4.txt");
 
     if (!inFile.is_open()) {
         cout << "Error: Could not open file " << filename << endl;

@@ -167,6 +167,16 @@ int Order::GetNumSeats() const
     return size;
 }
 
+int Order::GetSizeA() const
+{
+    return sizeA;
+}
+
+int Order::GetSizeB() const
+{
+    return sizeB;
+}
+
 void Order::setArrivalTime(int aTime) {
     ArrivalTime = aTime;
 }

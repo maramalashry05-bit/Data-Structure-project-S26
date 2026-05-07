@@ -4,10 +4,11 @@
 class PromoteAction : public Action
 {
 private:
-    int id;
+    int ID;
+    double ExtraMoney;
 
 public:
-    PromoteAction(int t, int i);
+    PromoteAction(int t, int i,double em);
 
     void Execute(Restaurant* pRest);
 };

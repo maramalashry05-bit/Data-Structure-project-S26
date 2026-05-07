@@ -38,3 +38,13 @@ void Scooter::Print() const
 {
     cout << "Scooter ID: " << ID << endl;
 }
+
+int Scooter::getMaintenanceFinishTime()
+{
+    return MaintenanceFinishTime;
+}
+
+void Scooter::setMaintenanceFinishTime(int t)
+{
+    MaintenanceFinishTime = t;
+}

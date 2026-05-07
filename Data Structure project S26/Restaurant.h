@@ -22,11 +22,14 @@ enum PROG_MODE {
 class Restaurant
 {
     friend class UI;
-public:
+private:
     int TotalServedCount;
     float TotalWaitTime;
     float TotalServiceTime;
+    int overwait_threshold;
     LinkedQueue<Order*> PEND_ODN ;
+    LinkedQueue<Order*> PEND_ODG;
+
     LinkedQueue<Order*> PEND_OT;
     LinkedQueue<Order*> PEND_OVN;
     priQueue<Order*> PEND_OVG;
@@ -50,7 +53,10 @@ public:
 public:
     void AddOrder(Order* o);
     void CancelOrder(int id);
-    void PromoteOrder(int id);
+    void PromoteOrder(int id,double m);
+   
+
+    void AutoPromoteOrders(int currentTime);
 
     void MoveToReady(int currentTime);
     void FinishOrder();
@@ -62,7 +68,6 @@ public:
     void SimulateStep(int t);
     bool IsFinished();
     void AddChef(Chef* c);
-    void AssignChefToOrder();
     void AssignOrdersToScooters(int currentTime);
     void UpdateServiceStatus(int currentTime);
     void GenerateFinalReport();
@@ -73,11 +78,14 @@ public:
     void AssignOrdersToTables(int currentTime);       // Feature 10
     void FinalizeTakeawayOrders(int currentTime);     // Feature 12
     void CheckFinishedDineInOrders(int currentTime);  // Feature 7
-    void CheckOverwaitOVG(int currentTime);           // BONUS
+    void HandleOVGOverwait(int currentTime);           // BONUS
      void AssignChefToOrder(int currentTime);     // feature 8 
    void UpdateMaintenanceList(int currentTime); // feature 5
    void HandleComboAssignment(Order* comboOrd, int currentTime); // bonus
    void LoadInputFile(const string& filename);
    void ExecuteSimulation(UI* pUI, PROG_MODE mode);
    void HandleScooterBreakdowns(int currentTime);
+
+   ~Restaurant();
+   
 };

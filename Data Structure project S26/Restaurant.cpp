@@ -9,13 +9,33 @@ using namespace std;
 
 void Restaurant::AddOrder(Order* o)
 {
+    if (o == nullptr) return;
+
     ORD_TYPE type = o->GetType();
 
-    if (type == TYPE_OD) {
+    switch (type)
+    {
+    case TYPE_ODN:
         PEND_ODN.enqueue(o);
-    }
-    else if (type == TYPE_OV) {
-       
+        break;
+
+    case TYPE_ODG:
+        PEND_ODG.enqueue(o);
+        break;
+
+    case TYPE_OT:
+        PEND_OT.enqueue(o);
+        break;
+
+    case TYPE_OVC:
+    case TYPE_OVN:
+        // Normal and Cold delivery orders go to the standard pending delivery queue
+        PEND_OVN.enqueue(o);
+        break;
+
+    case TYPE_OVG:
+    {
+        // Grilled Delivery (VIP) gets priority calculated and added to the priQueue
         int dist = o->GetDistance();
         int priority;
 
@@ -23,17 +43,17 @@ void Restaurant::AddOrder(Order* o)
             priority = (o->getEatingTime() + o->GetSize()) / dist;
         }
         else {
-           
             priority = (o->getEatingTime() + o->GetSize());
         }
 
         PEND_OVG.enqueue(o, priority);
+        break;
     }
-    else {
-        PEND_OT.enqueue(o);
+
+    default:
+        break;
     }
 }
-
 void Restaurant::CancelOrder(int id)
 {
     // 1. Check special cancellation container if it exists
@@ -72,35 +92,109 @@ void Restaurant::CancelOrder(int id)
         cout << "Order " << id << " not found or already in the kitchen." << endl;
     }
 }
-void Restaurant::PromoteOrder(int id)
+void Restaurant::PromoteOrder(int orderId, double extraMoney)
 {
     LinkedQueue<Order*> tempQueue;
-    Order* currentOrder = nullptr;
+    Order* pOrd = nullptr;
     bool found = false;
 
-    // Search through normal pending orders
-    while (PEND_ODN.dequeue(currentOrder))
+    // 1. Search for the order in the Pending Normal Delivery Queue (PEND_OVN)
+    // Note: Use your exact queue name here if it's different!
+    while (PEND_OVN.dequeue(pOrd))
     {
-        if (currentOrder->GetID() == id)
+        if (pOrd->GetID() == orderId)
         {
             found = true;
-            // Promote to VIP: Calculate priority and push to PEND_OVG
-            int newPriority = 100; // Replace with actual priority equation
-            PEND_OVG.enqueue(currentOrder, newPriority);
+
+            // 2. Update the order's total money
+            // (Make sure your Order class has GetMoney/SetMoney or equivalent Price getters/setters)
+            double newTotalMoney = pOrd->getMoney() + extraMoney;
+            pOrd->setMoney(newTotalMoney);
+
+            // 3. Calculate the new VIP Priority
+            // A standard priority equation: (Money / Distance) * Size
+            int dist = pOrd->GetDistance();
+            int size = pOrd->GetSize();
+            int priority = 0;
+
+            if (dist > 0) {
+                // Higher money & size = higher priority. Longer distance = lower priority.
+                priority = (newTotalMoney / dist) * size;
+            }
+            else {
+                // Fallback in case distance is 0 to avoid division by zero
+                priority = newTotalMoney * size;
+            }
+
+             pOrd->setType(TYPE_OVG); 
+
+            // 4. Move the order to the VIP Priority Queue (PEND_OVG)
+            PEND_OVG.enqueue(pOrd, priority);
         }
         else
         {
-            tempQueue.enqueue(currentOrder);
+            // Not the order we are looking for, put it in the temporary queue
+            tempQueue.enqueue(pOrd);
         }
     }
 
-    // Restore the normal queue
-    while (tempQueue.dequeue(currentOrder))
+    // 5. Restore all the other normal orders back to their original queue
+    while (tempQueue.dequeue(pOrd))
     {
-        PEND_ODN.enqueue(currentOrder);
+        PEND_OVN.enqueue(pOrd);
     }
 }
 
+
+
+void Restaurant::AutoPromoteOrders(int currentTime)
+{
+    LinkedQueue<Order*> tempQueue;
+    Order* pOrd = nullptr;
+
+    // Go through all pending Normal Delivery orders (Corrected to PEND_OVN!)
+    while (PEND_OVN.dequeue(pOrd))
+    {
+        // Calculate how long this order has been waiting
+        int waitTime = currentTime - pOrd->getArrivalTime();
+
+        // Check if it exceeds the restaurant's auto-promote policy
+        if (waitTime > overwait_threshold)
+        {
+            // --- AUTO-PROMOTE LOGIC ---
+
+            // Calculate priority for the VIP queue 
+            // (Same formula as Promote, but NO extra money is added!)
+            int dist = pOrd->GetDistance();
+            int priority;
+
+            if (dist > 0) {
+                priority = (pOrd->getEatingTime() + pOrd->GetSize()) / dist;
+            }
+            else {
+                priority = (pOrd->getEatingTime() + pOrd->GetSize());
+            }
+
+            // Update the order's type to the specific VIP Delivery enum
+            // (Make sure to use 'SetType' or 'setType' depending on exactly how you wrote it in Order.h)
+            pOrd->setType(TYPE_OVG);
+
+            // Move the order to the VIP Priority Queue
+            PEND_OVG.enqueue(pOrd, priority);
+        }
+        else
+        {
+            // Has not waited long enough, put it in the temporary queue
+            tempQueue.enqueue(pOrd);
+        }
+    }
+
+    // Restore the pending normal delivery orders that were NOT promoted
+    while (tempQueue.dequeue(pOrd))
+    {
+        PEND_OVN.enqueue(pOrd);
+    }
+}
 // =========================================================================
 // Lifecycle Phase Transitions
 // =========================================================================
@@ -110,22 +204,62 @@ void Restaurant::PromoteOrder(int id)
 void Restaurant::MoveToReady(int currentTime)
 {
     Order* pOrd = nullptr;
-    int priority;
+    int finishTimePri;
 
-    while (Cooking_Orders.peek(pOrd, priority)) {
+    // peek looks at the order closest to finishing
+    while (Cooking_Orders.peek(pOrd, finishTimePri)) {
+
         // If finish time is reached or passed
         if (currentTime >= pOrd->getFinishTime()) {
-            Cooking_Orders.dequeue(pOrd, priority);
+
+            // 1. Extract from the cooking queue
+            Cooking_Orders.dequeue(pOrd, finishTimePri);
+
+            // 2. Update the Order's internal state
+            pOrd->setStatus(READY);
             pOrd->setReadyTime(currentTime);
 
-            // Route to correct Ready queue
-            if (pOrd->GetType() == TYPE_OV) RDY_OV.enqueue(pOrd);
-            else if (pOrd->GetType() == TYPE_OD) RDY_OD.enqueue(pOrd);
-            else RDY_OT.enqueue(pOrd);
+            // 3. Route to the correct Ready Queue based on specific subtypes
+            ORD_TYPE type = pOrd->GetType();
 
-            // Note: In full logic, return the chef to their Free list here
+            switch (type) {
+            case TYPE_OVC:
+            case TYPE_OVG:
+            case TYPE_OVN:
+                RDY_OV.enqueue(pOrd);
+                break;
+
+            case TYPE_ODG:
+            case TYPE_ODN:
+                RDY_OD.enqueue(pOrd);
+                break;
+
+            case TYPE_OT:
+                RDY_OT.enqueue(pOrd);
+                break;
+            }
+
+            // --- 4. RETURN THE CHEF TO THEIR FREE QUEUE ---
+            Chef* pChef = pOrd->getChef(); // Get the specific chef who cooked this order
+
+            if (pChef != nullptr) {
+                // Assuming your Chef class has a GetType() that returns a char or enum
+                // Adjust 'N' and 'S' to match exactly how you defined your chef types!
+                if (pChef->GetType() == 'N') {
+                    Free_CN.enqueue(pChef);
+                }
+                else if (pChef->GetType() == 'S') {
+                    Free_CS.enqueue(pChef);
+                }
+
+                // Optional but highly recommended: un-link the chef so the order knows it's no longer being cooked
+                pOrd->setChef(nullptr);
+            }
+
         }
         else {
+            // Since the priority queue is sorted by finish time, 
+            // if the top one isn't done cooking, nobody else is either!
             break;
         }
     }
@@ -194,30 +328,55 @@ void Restaurant::AddChef(Chef* c)
         Free_CS.enqueue(c);
     }
 }
-
-void Restaurant::AssignChefToOrder()
+void Restaurant::AssignChefToOrder(int currentTime)
 {
-    // Example logic: Assign a Normal Chef to a Normal Order
-    Order* pendingOrder = nullptr;
-    Chef* availableChef = nullptr;
+    Order* pOrd = nullptr;
+    Chef* pChef = nullptr;
+    int priority;
 
-    if (!PEND_ODN.isEmpty() && !Free_CN.isEmpty())
-    {
-        PEND_ODN.dequeue(pendingOrder);
-        Free_CN.dequeue(availableChef);
+    // --- 1. HANDLE GRILLED/SPECIALTY ORDERS FIRST ---
+    // Try to assign OVG (VIP Grilled) and ODG (Dine-in Grilled) to CS Chefs
+    while (!Free_CS.isEmpty()) {
+        if (PEND_OVG.dequeue(pOrd, priority)) {
+            Free_CS.dequeue(pChef);
+            pOrd->setStatus(COOK);
+            pOrd->setChef(pChef); // Link chef to order
+            pOrd->SetServiceStartTime(currentTime);
+            pChef->AssignOrder(pOrd, currentTime);
+            Cooking_Orders.enqueue(pOrd, -pOrd->getFinishTime());
+        }
+        else if (PEND_ODG.dequeue(pOrd)) {
+            Free_CS.dequeue(pChef);
+            pOrd->setStatus(COOK);
+            pOrd->setChef(pChef);
+            pOrd->SetServiceStartTime(currentTime);
+            pChef->AssignOrder(pOrd, currentTime);
+            Cooking_Orders.enqueue(pOrd, -pOrd->getFinishTime());
+        }
+        else break; // No more grilled orders for CS
+    }
 
-        // Uses the AssignOrder method you defined in Chef.cpp
-        int currentTime = 0; // Replace with actual simulation time variable
-        availableChef->AssignOrder(pendingOrder, currentTime);
-        pendingOrder->SetServiceStartTime(currentTime);
-        pendingOrder->SetFinishTime(availableChef->GetFinishTime());
+    // --- 2. HANDLE NORMAL/COLD/TAKEAWAY ORDERS ---
+    while (!Free_CN.isEmpty()) {
+        // Priority: Delivery Normal -> Takeaway -> Dine-in Normal
+        if (PEND_OVN.dequeue(pOrd)) {
+            Free_CN.dequeue(pChef);
+        }
+        else if (PEND_OT.dequeue(pOrd)) {
+            Free_CN.dequeue(pChef);
+        }
+        else if (PEND_ODN.dequeue(pOrd)) {
+            Free_CN.dequeue(pChef);
+        }
+        else break; // No more orders for Normal Chefs
 
-        // Note: Your Cook_Ords queue is defined as priQueue<Order> (by value).
-        // If pendingOrder is a pointer, you will need to dereference it:
-        // Cooking_Orders.enqueue(*pendingOrder, priority); 
+        pOrd->setStatus(COOK);
+        pOrd->setChef(pChef);
+        pOrd->SetServiceStartTime(currentTime);
+        pChef->AssignOrder(pOrd, currentTime);
+        Cooking_Orders.enqueue(pOrd, -pOrd->getFinishTime());
     }
 }
-
 void Restaurant::AssignOrdersToScooters(int currentTime)
 {
     Order* readyDeliveryOrder = nullptr;
@@ -310,22 +469,25 @@ void Restaurant::CheckFinishedDineInOrders(int currentTime)
                 // Put table back into Free_Tables (Capacity is its priority)
                 assignedTable->SetAvailable(true);
                 Free_Tables.enqueue(assignedTable, assignedTable->getCapacity());
+                // Remove the table from the busy list
+                Table* tempT = nullptr;
+                int tempPri = 0; // Variable to hold the priority
+                priQueue<Table*> tempBusy; // Assuming tempBusy is also a priQueue
 
-                // Note: You will also need to remove it from Busy_No_Sharable
-                // using a loop similar to what we did in getBestFit().
+                // Pass BOTH the table pointer and the priority integer
+                while (Busy_No_Sharable.dequeue(tempT, tempPri)) {
+                    if (tempT != assignedTable) {
+                        // Keep the ones that are STILL busy, using their original priority
+                        tempBusy.enqueue(tempT, tempPri);
+                    }
+                }
+
+                // Restore the busy list
+                while (tempBusy.dequeue(tempT, tempPri)) {
+                    Busy_No_Sharable.enqueue(tempT, tempPri);
+                }
             }
         }
-        else
-        {
-            // Not finished, or not a Dine-In order. Save it in temp queue.
-             tempQueue.enqueue(finishedOrder, priority);
-        }
-    }
-
-    // Restore the In-Service queue
-    while (tempQueue.dequeue(finishedOrder, priority))
-    {
-        InServ_Orders.enqueue(finishedOrder, priority);
     }
 }
 
@@ -347,84 +509,51 @@ void Restaurant::FinalizeTakeawayOrders(int currentTime)
 }
 
 // ? BONUS: Order overwait for Ready OVG only
-void Restaurant::CheckOverwaitOVG(int currentTime)
-{
-    int MAX_WAIT_TIME = 15;
-    Order *currentOrder=nullptr;
-    LinkedQueue<Order> tempQueue;
-
-    while (RDY_OV.dequeue(currentOrder))
-    {
-        // Now using getReadyTime()!
-        int waitTime = currentTime - currentOrder->getReadyTime();
-
-        if (waitTime > MAX_WAIT_TIME)
-        {
-            cout << ">> [EMERGENCY] VIP Vegan Order " << currentOrder->GetID()
-                << " has been waiting for a scooter for " << waitTime << " mins!" << endl;
-
-            // (Handle priority boost or complain logic here)
-        }
-
-        tempQueue.enqueue(*currentOrder);
-    }
-
-    while (tempQueue.dequeue(*currentOrder)) {
-        RDY_OV.enqueue(currentOrder);
-    }
-}
-
-void Restaurant::AssignChefToOrder(int currentTime)
-{
+void Restaurant::HandleOVGOverwait(int currentTime) {
+    const int MAX_WAIT = 15;
     Order* pOrd = nullptr;
-    Chef* pChef = nullptr;
-    int priority;
+    LinkedQueue<Order*> tempQ;
 
-    // 1. Assign VIP Vegan (OVG) to Speedy Chefs first, then Normal
-    while (!PEND_OVG.isEmpty()) {
-        if (!Free_CS.dequeue(pChef)) {
-            if (!Free_CN.dequeue(pChef)) break; // No chefs available, stop loop
+    // Scan the Ready Delivery Queue
+    while (RDY_OV.dequeue(pOrd)) {
+        // If it's a Vegan Grilled order and it's been sitting too long
+        if (pOrd->GetType() == TYPE_OVG && (currentTime - pOrd->getReadyTime()) > MAX_WAIT) {
+            pOrd->setUrgent(true); // Internal flag for Member 1 to see
         }
-
-        if (PEND_OVG.dequeue(pOrd, priority)) {
-            if (pOrd != nullptr) {
-                pOrd->SetServiceStartTime(currentTime);
-                pChef->AssignOrder(pOrd, currentTime);
-                // Enqueue with negative finish time for min-priority behavior
-                Cooking_Orders.enqueue(pOrd, -pChef->GetFinishTime());
-            }
-        }
+        tempQ.enqueue(pOrd);
     }
-
-    // 2. Assign Normal Delivery (ODN) to Normal Chefs
-    while (!PEND_ODN.isEmpty() && !Free_CN.isEmpty()) {
-        if (PEND_ODN.dequeue(pOrd) && Free_CN.dequeue(pChef)) {
-            if (pOrd != nullptr && pChef != nullptr) {
-                pOrd->SetServiceStartTime(currentTime);
-                pChef->AssignOrder(pOrd, currentTime);
-                Cooking_Orders.enqueue(pOrd, -pChef->GetFinishTime());
-            }
-        }
-    }
+    // Put them back
+    while (tempQ.dequeue(pOrd)) RDY_OV.enqueue(pOrd);
 }
 
     
 
 
-
 void Restaurant::UpdateMaintenanceList(int currentTime)
 {
     Scooter* pScoot = nullptr;
+    LinkedQueue<Scooter*> tempMaint;
 
-
-    while (Maint_Scooters.peek(pScoot))
+    // We use a temporary queue to only release scooters whose time is up
+    while (Maint_Scooters.dequeue(pScoot))
     {
+        // Check if maintenance period (main_dur) has passed
+        if (currentTime >= pScoot->getMaintenanceFinishTime())
+        {
+            pScoot->resetTrips();
+            pScoot->SetAvailable(true);
+            Free_Scooters.enqueue(pScoot, pScoot->GetSpeed());
+        }
+        else
+        {
+            tempMaint.enqueue(pScoot);
+        }
+    }
 
-        Maint_Scooters.dequeue(pScoot);
-        pScoot->resetTrips();
-        pScoot->SetAvailable(true);
-        Free_Scooters.enqueue(pScoot, pScoot->GetSpeed());
-
+    // Put those still being fixed back into the maintenance queue
+    while (tempMaint.dequeue(pScoot))
+    {
+        Maint_Scooters.enqueue(pScoot);
     }
 }
 // Logic for handling a Combo in the Kitchen
@@ -503,8 +632,7 @@ void Restaurant::ExecuteActions(int time)
         if (act->getTime() == time)
         {
             Actions.dequeue(act);
-            // Assuming your actions have an Execute(this) method
-            // act->Execute(this); 
+             act->Execute(this); 
             delete act;
         }
         else
@@ -526,24 +654,32 @@ LinkedStack<Order*>& Restaurant::getFinished()
 
 void Restaurant::SimulateStep(int t)
 {
+    // PHASE 1: Process incoming actions (Arrivals, Cancels, Promotes)
     ExecuteActions(t);
-    UpdateServiceStatus(t);
-    MoveScooterToMaintenance();
-    MoveToReady(t);
+    AutoPromoteOrders(t);
 
-    AssignChefToOrder();
-    AssignOrdersToTables(t);
-    AssignOrdersToScooters(t);
+    // PHASE 2: Cleanup (Finish what was being served/cooked)
+    UpdateServiceStatus(t);       // Deliveries finished?
+    CheckFinishedDineInOrders(t); // Table orders finished?
+    MoveToReady(t);               // Cooking finished? (Freess Chefs)
+    UpdateMaintenanceList(t);     // Repairs finished? (Frees Scooters)
 
-    FinishOrder();
+    // PHASE 3: Assignments (New starts)
+    AssignChefToOrder(t);         // Pend -> Cooking
+    FinalizeTakeawayOrders(t);    // Ready Takeaway -> Finish
+    AssignOrdersToTables(t);      // Ready Dine-in -> Tables
+    AssignOrdersToScooters(t);    // Ready Delivery -> Scooters
+
+    // PHASE 4: Handle Breakdowns (Random events)
+    HandleScooterBreakdowns(t);
 }
 
 bool Restaurant::IsFinished()
 {
-    // The simulation is finished if all queues are empty
+    // The simulation is finished ONLY if ALL queues are completely empty
     return (PEND_ODN.isEmpty() && PEND_OVG.isEmpty() && PEND_OT.isEmpty() &&
-        RDY_OD.isEmpty() && RDY_OT.isEmpty() /* && RDY_OV.isEmpty() */ &&
-        Actions.isEmpty() && InServ_Orders.isEmpty());
+        RDY_OD.isEmpty() && RDY_OT.isEmpty() && RDY_OV.isEmpty() &&
+        Actions.isEmpty() && InServ_Orders.isEmpty() && Cooking_Orders.isEmpty());
 }
 
 void Restaurant::GenerateFinalReport()
@@ -681,6 +817,9 @@ void Restaurant::LoadInputFile(const string& filename) {
     int main_ords, main_dur;
     inFile >> main_ords >> main_dur;
 
+    // NOTE: To fix the instant-maintenance bug, you should store main_dur in your Restaurant!
+    // Example: this->maintenance_duration = main_dur; 
+
     int scooterID = 1;
     for (int i = 0; i < s_count; i++) {
         Free_Scooters.enqueue(new Scooter(scooterID++, s_speed, false), s_speed);
@@ -698,13 +837,12 @@ void Restaurant::LoadInputFile(const string& filename) {
 
         for (int i = 0; i < table_count; i++) {
             // NOTE: Make sure this line is uncommented and matches your table structure!
-            // Free_Tables.Insert(new Table(tableID++, capacity)); 
+            // Free_Tables.enqueue(new Table(tableID++, capacity), capacity); 
         }
         tables_read += table_count;
     }
 
     // 4. Read Threshold
-    int overwait_threshold;
     inFile >> overwait_threshold;
 
     // 5. Read Actions
@@ -715,6 +853,7 @@ void Restaurant::LoadInputFile(const string& filename) {
         char action_letter;
         inFile >> action_letter;
 
+        //  ADD LOGIC ---
         if (action_letter == 'Q') {
             string typ;
             int tq, id, size;
@@ -722,15 +861,25 @@ void Restaurant::LoadInputFile(const string& filename) {
             inFile >> typ >> tq >> id >> size >> price;
 
             // 1. Convert the string 'typ' from the file into your EXACT enum
-            ORD_TYPE oType;
-            if (typ == "ODG" || typ == "ODN") {
-                oType = TYPE_OD; // Dine-in
+            ORD_TYPE orderType;
+
+            if (typ == "ODG") {
+                orderType = TYPE_ODG;
             }
-            else if (typ == "OVC" || typ == "OVG" || typ == "OVN") {
-                oType = TYPE_OV; // Delivery
+            else if (typ == "ODN") {
+                orderType = TYPE_ODN;
             }
-            else {
-                oType = TYPE_OT; // Takeaway (OT)
+            else if (typ == "OT") {
+                orderType = TYPE_OT;
+            }
+            else if (typ == "OVC") {
+                orderType = TYPE_OVC;
+            }
+            else if (typ == "OVG") {
+                orderType = TYPE_OVG;
+            }
+            else if (typ == "OVN") {
+                orderType = TYPE_OVN;
             }
 
             // 2. Read the extra data from the file, but only pass the 5 variables your constructor allows
@@ -738,50 +887,99 @@ void Restaurant::LoadInputFile(const string& filename) {
                 int seats, duration;
                 char canShare;
                 inFile >> seats >> duration >> canShare;
-                // bool shareable = (canShare == 'Y' || canShare == 'y'); // Stored in case you need it later
+                bool shareable = (canShare == 'Y' || canShare == 'y');
 
-                // Enqueue using your 5-argument constructor
-                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
+                Actions.enqueue(new ArrivalAction(tq, id, orderType, size, price));
             }
             else if (typ == "OVC" || typ == "OVG" || typ == "OVN") {
                 double distance;
                 inFile >> distance;
 
-                // Enqueue using your 5-argument constructor
-                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
+                Actions.enqueue(new ArrivalAction(tq, id, orderType, size, price));
             }
             else if (typ == "OT") {
-
-                // Enqueue using your 5-argument constructor
-                Actions.enqueue(new ArrivalAction(tq, id, oType, size, price));
+                Actions.enqueue(new ArrivalAction(tq, id, orderType, size, price));
             }
+        }
+        else if (action_letter == 'X') {
+            //  CANCELLATION LOGIC ---
+            int tq, id;
+            inFile >> tq >> id;
+
+             Actions.enqueue(new CancelAction(tq, id));
+        }
+        else if (action_letter == 'P') {
+            //  PROMOTION LOGIC ---
+            int tq, id;
+            double extraMoney;
+            inFile >> tq >> id >> extraMoney;
+
+             Actions.enqueue(new PromoteAction(tq, id, extraMoney));
         }
     }
 
     inFile.close();
 }
 
-
-
-  
 void Restaurant::ExecuteSimulation(UI* pUI, PROG_MODE mode) {
     int currentTime = 1;
 
     while (!IsFinished()) {
+        // ---------------------------------------------------------
+        // PHASE 1: External Events & Queue Management
+        // ---------------------------------------------------------
+
+        // 1. Execute actions from the input file (Arrival, Cancel, Promote)
         ExecuteActions(currentTime);
 
+        // 2. Auto promote Normal Delivery (ODN) to VIP (OVG) if wait > threshold
+        AutoPromoteOrders(currentTime);
+
+        // ---------------------------------------------------------
+        // PHASE 2: Finish Services & Free Resources FIRST
+        // ---------------------------------------------------------
+
+        // 3. Finish deliveries and free up scooters
         UpdateServiceStatus(currentTime);
+
+        // 4. Finish dine-in orders and free up tables (Member 3)
+        CheckFinishedDineInOrders(currentTime);
+
+        // ---------------------------------------------------------
+        // PHASE 3: Kitchen & Maintenance Logic
+        // ---------------------------------------------------------
+
+        // 5. Check if returning scooters need to go to maintenance
         MoveScooterToMaintenance();
+
+        // 6. Return fixed scooters from maintenance to the available pool
         UpdateMaintenanceList(currentTime);
+
+        // 7. Move finished food from Cooking to Ready Queues, freeing Chefs
         MoveToReady(currentTime);
 
-        AssignChefToOrder(currentTime);
-        AssignOrdersToTables(currentTime);
-        AssignOrdersToScooters(currentTime);
+        // ---------------------------------------------------------
+        // PHASE 4: Assignments & Instant Finishes
+        // ---------------------------------------------------------
 
+        // 8. Takeaway orders finish immediately once cooked (no tables/scooters needed)
+        FinalizeTakeawayOrders(currentTime);
+
+        // 9. Check if any Ready VIP orders are waiting too long (Bonus)
+        HandleOVGOverwait(currentTime);
+
+        // 10. Assign available resources to waiting orders
+        AssignChefToOrder(currentTime);      // Pending -> Kitchen
+        AssignOrdersToTables(currentTime);   // Ready Dine-in -> Tables
+        AssignOrdersToScooters(currentTime); // Ready Delivery -> Scooters
+
+        // 11. Random scooter breakdowns (Bonus)
         HandleScooterBreakdowns(currentTime);
 
-        // --- THE FIX: Only print and wait if in Interactive Mode ---
+        // ---------------------------------------------------------
+        // PHASE 5: User Interface
+        // ---------------------------------------------------------
+
         if (mode == INTERACTIVE) {
             pUI->PrintAll(*this, currentTime);
             cin.get(); // Wait for user to press Enter to move to next timestep
@@ -790,8 +988,7 @@ void Restaurant::ExecuteSimulation(UI* pUI, PROG_MODE mode) {
         currentTime++;
     }
 
-    // This will always run, ensuring your output file is created 
-    // regardless of whether the simulation was interactive or silent.
+    // Always generate the final report (and output file) when simulation ends
     GenerateFinalReport();
 }
 void Restaurant::HandleScooterBreakdowns(int currentTime) {
@@ -828,4 +1025,50 @@ void Restaurant::HandleScooterBreakdowns(int currentTime) {
     while (tempInServ.dequeue(pOrd, priority)) {
         InServ_Orders.enqueue(pOrd, priority);
     }
+}
+
+//Destructor
+Restaurant::~Restaurant()
+{
+    Order* pOrd = nullptr;
+    Chef* pChef = nullptr;
+    Scooter* pScoot = nullptr;
+    Table* pTable = nullptr;
+    Action* pAct = nullptr;
+    int priority;
+
+    // 1. Clear all Pending Orders
+    while (PEND_OVG.dequeue(pOrd, priority)) delete pOrd;
+    while (PEND_OVN.dequeue(pOrd))           delete pOrd;
+    while (PEND_ODG.dequeue(pOrd))           delete pOrd;
+    while (PEND_ODN.dequeue(pOrd))           delete pOrd;
+    while (PEND_OT.dequeue(pOrd))            delete pOrd;
+
+    // 2. Clear Cooking and Ready Queues
+    while (Cooking_Orders.dequeue(pOrd, priority)) delete pOrd;
+    while (RDY_OV.dequeue(pOrd))                   delete pOrd;
+    while (RDY_OD.dequeue(pOrd))                   delete pOrd;
+    while (RDY_OT.dequeue(pOrd))                   delete pOrd;
+
+    // 3. Clear In-Service and Finished Orders
+    while (InServ_Orders.dequeue(pOrd, priority))  delete pOrd;
+    while (Finished_orders.pop(pOrd))              delete pOrd;
+    while (Cancelled_orders.dequeue(pOrd))         delete pOrd;
+
+    // 4. Clear Chefs
+    while (Free_CN.dequeue(pChef)) delete pChef;
+    while (Free_CS.dequeue(pChef)) delete pChef;
+
+    // 5. Clear Scooters
+    while (Free_Scooters.dequeue(pScoot, priority)) delete pScoot;
+    while (Maint_Scooters.dequeue(pScoot))          delete pScoot;
+    while (Back_Scooters.dequeue(pScoot, priority)) delete pScoot;
+
+    // 6. Clear Tables
+    // Assuming Free_Tables is a Priority Queue/BST and Busy is a Priority Queue
+    while (Free_Tables.dequeue(pTable, priority))        delete pTable;
+    while (Busy_No_Sharable.dequeue(pTable, priority))   delete pTable;
+
+    // 7. Clear Actions
+    while (Actions.dequeue(pAct)) delete pAct;
 }

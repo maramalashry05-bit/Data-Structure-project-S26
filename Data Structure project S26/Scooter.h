@@ -10,6 +10,7 @@ private:
     int Speed;
     int TripsDone;
     bool isFast;
+    int MaintenanceFinishTime;
 
 public:
     Scooter(int id, int speed, bool fast);
@@ -22,4 +23,6 @@ public:
     void incrementTrips();
     void resetTrips();
     void Print() const;
+    int getMaintenanceFinishTime();
+    void setMaintenanceFinishTime(int t);
 };

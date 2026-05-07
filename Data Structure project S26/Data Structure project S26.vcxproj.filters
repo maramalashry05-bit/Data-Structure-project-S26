@@ -129,4 +129,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="testcase2.txt" />
+    <Text Include="testcase3.txt" />
+  </ItemGroup>
 </Project>

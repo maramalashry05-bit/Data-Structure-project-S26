@@ -16,6 +16,36 @@ Order::Order(int id, ORD_TYPE t, int s, double m)
     ReadyTime = 0;
 }
 
+void Order::setStatus(ORD_STATUS s)
+{
+    status = s;
+}
+
+ORD_STATUS Order::getStatus() const
+{
+    return status;
+}
+
+void Order::setChef(Chef* c)
+{
+    myChef = c;
+}
+
+Chef* Order::getChef() const
+{
+    return myChef;
+}
+
+void Order::setUrgent(bool status)
+{
+    isUrgent = status;
+}
+
+bool Order::getUrgent() const
+{
+    return isUrgent;
+}
+
 int Order::GetID() const
 {
     return ID;
@@ -26,9 +56,30 @@ ORD_TYPE Order::GetType() const
     return type;
 }
 
+string Order::GetTypeString() const
+{
+   
+        switch (type) // Assuming your private variable is named 'type'
+        {
+        case TYPE_ODG: return "ODG";
+        case TYPE_ODN: return "ODN";
+        case TYPE_OT:  return "OT";
+        case TYPE_OVC: return "OVC";
+        case TYPE_OVG: return "OVG";
+        case TYPE_OVN: return "OVN";
+        default:       return "UNKNOWN";
+        }
+    
+}
+
 void Order::setType(ORD_TYPE t)
 {
     type = t;
+}
+
+void Order::setMoney(double m)
+{
+    money = m;
 }
 
 double Order::getMoney() const
@@ -40,9 +91,16 @@ void Order::Print() const
 {
     cout << "Order ID: " << ID << " Type: ";
 
-    if (type == TYPE_OD) cout << "OD";
-    else if (type == TYPE_OV) cout << "OV";
-    else cout << "OT";
+    switch (type)
+    {
+    case TYPE_ODG: cout << "ODG"; break;
+    case TYPE_ODN: cout << "ODN"; break;
+    case TYPE_OT:  cout << "OT";  break;
+    case TYPE_OVC: cout << "OVC"; break;
+    case TYPE_OVG: cout << "OVG"; break;
+    case TYPE_OVN: cout << "OVN"; break;
+    default:       cout << "UNKNOWN"; break;
+    }
 
     cout << endl;
 }
